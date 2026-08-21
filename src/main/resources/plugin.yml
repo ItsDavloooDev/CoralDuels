@@ -1,0 +1,6 @@
+name: CoralDuels
+version: ${version}
+main: dev.itsdavlooo.coralduels.CoralDuelsPlugin
+api-version: '1.21'
+author: ItsDavloooDev
+description: Sistema professionale di duelli realistici per server Paper
