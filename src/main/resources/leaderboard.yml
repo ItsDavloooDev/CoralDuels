@@ -1,0 +1,15 @@
+leaderboard:
+  entries: 10
+  update-interval: 300
+  display:
+    header: "&8&m----------------&b Top Duellanti &8&m----------------"
+    format: "&e#%pos% &f%player% &8- &e%wins% &8W &c%losses% &8L &7(&e%elo% ELO&7)"
+    empty: "&7Nessun dato disponibile."
+  categories:
+    - "overall"
+    - "elo"
+    - "wins"
+    - "streak"
+    - "kit_classic"
+    - "kit_archer"
+    - "kit_tank"

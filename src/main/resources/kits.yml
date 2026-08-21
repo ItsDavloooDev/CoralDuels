@@ -1,0 +1,121 @@
+kits:
+  classic:
+    name: "Classic"
+    display-name: "&fClassic"
+    permission: "coralduels.kit.select.classic"
+    icon:
+      material: "DIAMOND_SWORD"
+      name: "&fClassic Kit"
+      lore:
+        - "&7Kit bilanciato per duelli classici"
+        - "&7Spada di diamante, armatura di ferro"
+    items:
+      - slot: 0
+        material: "DIAMOND_SWORD"
+        amount: 1
+        enchantments:
+          DAMAGE_ALL: 1
+          DURABILITY: 3
+      - slot: 1
+        material: "SHIELD"
+        amount: 1
+        enchantments:
+          DURABILITY: 3
+      - slot: 2
+        material: "GOLDEN_APPLE"
+        amount: 3
+      - slot: 3
+        material: "COOKED_BEEF"
+        amount: 16
+      - slot: 8
+        material: "ENDER_PEARL"
+        amount: 4
+    armor:
+      helmet: "IRON_HELMET"
+      chestplate: "IRON_CHESTPLATE"
+      leggings: "IRON_LEGGINGS"
+      boots: "IRON_BOOTS"
+    effects: []
+    cooldown: 0
+
+  archer:
+    name: "Archer"
+    display-name: "&aArcher"
+    permission: "coralduels.kit.select.archer"
+    icon:
+      material: "BOW"
+      name: "&aArcher Kit"
+      lore:
+        - "&7Combattimento a distanza"
+        - "&7Arco potenziato, frecce infinite"
+    items:
+      - slot: 0
+        material: "BOW"
+        amount: 1
+        enchantments:
+          ARROW_DAMAGE: 2
+          ARROW_INFINITE: 1
+          DURABILITY: 3
+      - slot: 1
+        material: "ARROW"
+        amount: 1
+      - slot: 2
+        material: "IRON_SWORD"
+        amount: 1
+        enchantments:
+          DAMAGE_ALL: 1
+      - slot: 3
+        material: "GOLDEN_APPLE"
+        amount: 2
+      - slot: 4
+        material: "COOKED_BEEF"
+        amount: 16
+    armor:
+      helmet: "LEATHER_HELMET"
+      chestplate: "LEATHER_CHESTPLATE"
+      leggings: "LEATHER_LEGGINGS"
+      boots: "LEATHER_BOOTS"
+    effects: []
+    cooldown: 0
+
+  tank:
+    name: "Tank"
+    display-name: "&cTank"
+    permission: "coralduels.kit.select.tank"
+    icon:
+      material: "NETHERITE_CHESTPLATE"
+      name: "&cTank Kit"
+      lore:
+        - "&7Alta resistenza, danno ridotto"
+        - "&7Armatura netherite, rigenerazione"
+    items:
+      - slot: 0
+        material: "IRON_SWORD"
+        amount: 1
+        enchantments:
+          KNOCKBACK: 2
+          DURABILITY: 3
+      - slot: 1
+        material: "SHIELD"
+        amount: 1
+        enchantments:
+          DURABILITY: 3
+      - slot: 2
+        material: "GOLDEN_APPLE"
+        amount: 5
+      - slot: 3
+        material: "COOKED_BEEF"
+        amount: 32
+      - slot: 8
+        material: "TOTEM_OF_UNDYING"
+        amount: 1
+    armor:
+      helmet: "NETHERITE_HELMET"
+      chestplate: "NETHERITE_CHESTPLATE"
+      leggings: "NETHERITE_LEGGINGS"
+      boots: "NETHERITE_BOOTS"
+    effects:
+      - type: "REGENERATION"
+        amplifier: 1
+        duration: 999999
+    cooldown: 0

@@ -1,0 +1,25 @@
+debug: false
+world:
+  name: "duel_world"
+  template: "duel_template"
+  auto-create: true
+  keep-loaded: true
+timers:
+  request-timeout: 30
+  countdown: 3
+  max-duel-duration: 300
+limits:
+  max-duels-per-player: 1
+  max-distance: 100
+  allow-cross-world: false
+database:
+  host: "localhost"
+  port: 3306
+  database: "coralduels"
+  username: "root"
+  password: ""
+  pool-size: 10
+  ssl: false
+commands:
+  duel-cooldown: 5
+  admin-cooldown: 2

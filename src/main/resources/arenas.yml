@@ -1,0 +1,48 @@
+arenas:
+  arena_1:
+    name: "Arena 1"
+    world: "duel_world"
+    spawn1:
+      x: 100.5
+      y: 64
+      z: 100.5
+      yaw: -90
+      pitch: 0
+    spawn2:
+      x: 150.5
+      y: 64
+      z: 100.5
+      yaw: 90
+      pitch: 0
+    bounds:
+      min-x: 90
+      max-x: 160
+      min-y: 60
+      max-y: 80
+      min-z: 90
+      max-z: 110
+    enabled: true
+
+  arena_2:
+    name: "Arena 2"
+    world: "duel_world"
+    spawn1:
+      x: 200.5
+      y: 64
+      z: 100.5
+      yaw: -90
+      pitch: 0
+    spawn2:
+      x: 250.5
+      y: 64
+      z: 100.5
+      yaw: 90
+      pitch: 0
+    bounds:
+      min-x: 190
+      max-x: 260
+      min-y: 60
+      max-y: 80
+      min-z: 90
+      max-z: 110
+    enabled: true

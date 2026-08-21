@@ -1,0 +1,25 @@
+rewards:
+  enabled: true
+  winner:
+    - type: "COMMAND"
+      weight: 100
+      value: "eco give %player% 500"
+      message: "&aHai vinto &e$500&a!"
+    - type: "ITEM"
+      weight: 30
+      value: "DIAMOND:3"
+      message: "&aHai ricevuto &e3 Diamanti&a!"
+    - type: "COMMAND"
+      weight: 10
+      value: "lp user %player% permission settemp coralduels.vip 1d"
+      message: "&aHai ottenuto &eVIP &aper 1 giorno!"
+  loser:
+    - type: "COMMAND"
+      weight: 100
+      value: "eco give %player% 100"
+      message: "&eHai ricevuto &e$100 &eper la partecipazione."
+  participation:
+    - type: "COMMAND"
+      weight: 100
+      value: "coralduels stats add %player% duels_played 1"
+      silent: true

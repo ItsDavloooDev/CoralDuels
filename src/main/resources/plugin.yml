@@ -4,3 +4,79 @@ main: dev.itsdavlooo.coralduels.CoralDuelsPlugin
 api-version: '1.21'
 author: ItsDavloooDev
 description: Sistema professionale di duelli realistici per server Paper
+commands:
+  duel:
+    description: Comando principale per i duelli
+    usage: /duel <send|accept|deny|leave|stats|leaderboard>
+    aliases: [duels]
+  dueladmin:
+    description: Comandi amministrativi per i duelli
+    usage: /dueladmin <reload|arena|kit|forceend>
+    permission: coralduels.admin.reload
+    aliases: [dueladm]
+  kit:
+    description: Gestione kit
+    usage: /kit <list|select|preview>
+    aliases: [kits]
+permissions:
+  coralduels.duel.send:
+    description: Permette di sfidare un giocatore
+    default: true
+  coralduels.duel.accept:
+    description: Permette di accettare una sfida
+    default: true
+  coralduels.duel.deny:
+    description: Permette di rifiutare una sfida
+    default: true
+  coralduels.duel.leave:
+    description: Permette di abbandonare un duello
+    default: true
+  coralduels.duel.stats:
+    description: Permette di vedere le statistiche
+    default: true
+  coralduels.duel.leaderboard:
+    description: Permette di vedere la leaderboard
+    default: true
+  coralduels.kit.select.*:
+    description: Accesso a tutti i kit
+    default: op
+    children:
+      coralduels.kit.select.classic: true
+      coralduels.kit.select.archer: true
+      coralduels.kit.select.tank: true
+  coralduels.kit.select.classic:
+    description: Accesso al kit Classic
+    default: true
+  coralduels.kit.select.archer:
+    description: Accesso al kit Archer
+    default: true
+  coralduels.kit.select.tank:
+    description: Accesso al kit Tank
+    default: true
+  coralduels.kit.preview.*:
+    description: Preview di tutti i kit
+    default: true
+  coralduels.admin.arena.create:
+    description: Crea un'arena
+    default: op
+  coralduels.admin.arena.delete:
+    description: Elimina un'arena
+    default: op
+  coralduels.admin.arena.list:
+    description: Lista le arene
+    default: op
+  coralduels.admin.kit.reload:
+    description: Ricarica i kit
+    default: op
+  coralduels.admin.reload:
+    description: Ricarica la configurazione
+    default: op
+  coralduels.admin.forceend:
+    description: Forza la fine di un duello
+    default: op
+  coralduels.bypass.cooldown:
+    description: Ignora i cooldown
+    default: op
+  coralduels.bypass.kitlimit:
+    description: Ignora i limiti dei kit
+    default: op
