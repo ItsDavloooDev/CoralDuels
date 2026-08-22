@@ -70,6 +70,19 @@ public final class RewardManager {
         }
     }
 
+    public void executeWinRewards(Player player, String kitName) {
+        executeRewards(player, "win");
+        executeRewards(player, "kit." + kitName.toLowerCase());
+    }
+
+    public void executeLossRewards(Player player) {
+        executeRewards(player, "loss");
+    }
+
+    public void executeDrawRewards(Player player) {
+        executeRewards(player, "draw");
+    }
+
     private void executeReward(Player player, Reward reward) {
         String parsedValue = reward.value()
                 .replace("%player%", player.getName())

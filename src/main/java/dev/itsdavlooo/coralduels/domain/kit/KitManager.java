@@ -77,4 +77,22 @@ public final class KitManager {
     public Map<String, Kit> getAllKits() {
         return Map.copyOf(kits);
     }
+
+    public Optional<KitDefinition> getKitDefinition(String name) {
+        return getKit(name).map(KitDefinition::fromKit);
+    }
+
+    public Map<String, KitDefinition> getAllKitDefinitions() {
+        return kits.entrySet().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> KitDefinition.fromKit(e.getValue())
+                ));
+    }
+
+    public void incrementKitUsage(String kitName) {
+    }
+
+    public void incrementKitWin(String kitName) {
+    }
 }
