@@ -10,9 +10,11 @@ public final class RequestManager {
     private final Map<UUID, DuelRequest> pendingRequests = new ConcurrentHashMap<>();
     private final Map<UUID, DuelRequest> requestsByTarget = new ConcurrentHashMap<>();
 
-    public void addRequest(DuelRequest request) {
+    public DuelRequest addRequest(UUID challenger, UUID target, Kit kit) {
+        DuelRequest request = new DuelRequest(UUID.randomUUID(), challenger, target, kit, System.currentTimeMillis());
         pendingRequests.put(request.id(), request);
         requestsByTarget.put(request.target(), request);
+        return request;
     }
 
     public Optional<DuelRequest> getRequest(UUID id) {

@@ -29,6 +29,17 @@ public final class Duel {
         this.state = DuelState.PENDING;
     }
 
+    public Duel(DuelSession session) {
+        this.id = session.id();
+        this.challenger = session.challenger();
+        this.target = session.target();
+        this.kit = session.kit();
+        this.arena = session.arena();
+        this.state = session.state();
+        this.startedAt = session.startedAt();
+        this.endedAt = session.endedAt();
+    }
+
     public UUID getId() { return id; }
     public DuelPlayer getChallenger() { return challenger; }
     public DuelPlayer getTarget() { return target; }

@@ -140,4 +140,27 @@ public final class Kit {
     public ItemStack[] getArmor() { return armor; }
     public List<KitEffect> getEffects() { return effects; }
     public int getCooldown() { return cooldown; }
+
+    public void giveItems(org.bukkit.entity.Player player) {
+        player.getInventory().clear();
+        player.getInventory().setArmorContents(null);
+
+        for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
+            player.getInventory().setItem(entry.getKey(), entry.getValue().clone());
+        }
+
+        if (armor.length >= 4) {
+            player.getInventory().setHelmet(armor[3].clone());
+            player.getInventory().setChestplate(armor[2].clone());
+            player.getInventory().setLeggings(armor[1].clone());
+            player.getInventory().setBoots(armor[0].clone());
+        }
+
+        for (KitEffect effect : effects) {
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    effect.type(), effect.duration(), effect.amplifier(), true, false));
+        }
+
+        player.updateInventory();
+    }
 }

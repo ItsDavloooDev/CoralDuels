@@ -11,10 +11,14 @@ import dev.itsdavlooo.coralduels.service.config.ConfigService;
 import dev.itsdavlooo.coralduels.service.database.DatabaseService;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import dev.itsdavlooo.coralduels.service.world.DuelWorldManager;
+import dev.itsdavlooo.coralduels.domain.duel.DuelManager;
+import dev.itsdavlooo.coralduels.domain.duel.RequestManager;
+import dev.itsdavlooo.coralduels.domain.duel.SessionManager;
 import dev.itsdavlooo.coralduels.domain.kit.KitManager;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
 import dev.itsdavlooo.coralduels.domain.arena.ArenaManager;
 import dev.itsdavlooo.coralduels.domain.reward.RewardManager;
+import dev.itsdavlooo.coralduels.domain.statistic.StatisticManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class CoralDuelsPlugin extends JavaPlugin {
@@ -29,6 +33,10 @@ public final class CoralDuelsPlugin extends JavaPlugin {
     private PlayerStateManager playerStateManager;
     private ArenaManager arenaManager;
     private RewardManager rewardManager;
+    private StatisticManager statisticManager;
+    private RequestManager requestManager;
+    private SessionManager sessionManager;
+    private DuelManager duelManager;
 
     @Override
     public void onEnable() {
@@ -49,6 +57,11 @@ public final class CoralDuelsPlugin extends JavaPlugin {
         playerStateManager = new PlayerStateManager(this);
         arenaManager = new ArenaManager(configService, this);
         rewardManager = new RewardManager(configService, this);
+        statisticManager = new StatisticManager(databaseService);
+        requestManager = new RequestManager();
+        sessionManager = new SessionManager();
+        duelManager = new DuelManager(requestManager, sessionManager,
+                playerStateManager, rewardManager, statisticManager, arenaManager);
 
         ModuleRegistry.register(configService, messageService, databaseService,
                 worldManager, kitManager, playerStateManager,
@@ -75,7 +88,8 @@ public final class CoralDuelsPlugin extends JavaPlugin {
     }
 
     private void registerCommands() {
-        getCommand("duel").setExecutor(new DuelCommand(messageService));
+        getCommand("duel").setExecutor(new DuelCommand(messageService, duelManager, requestManager,
+                kitManager, playerStateManager));
         getCommand("dueladmin").setExecutor(new AdminCommand(messageService));
         getCommand("kit").setExecutor(new KitCommand(messageService));
     }
@@ -98,4 +112,8 @@ public final class CoralDuelsPlugin extends JavaPlugin {
     public PlayerStateManager getPlayerStateManager() { return playerStateManager; }
     public ArenaManager getArenaManager() { return arenaManager; }
     public RewardManager getRewardManager() { return rewardManager; }
+    public StatisticManager getStatisticManager() { return statisticManager; }
+    public DuelManager getDuelManager() { return duelManager; }
+    public RequestManager getRequestManager() { return requestManager; }
+    public SessionManager getSessionManager() { return sessionManager; }
 }
