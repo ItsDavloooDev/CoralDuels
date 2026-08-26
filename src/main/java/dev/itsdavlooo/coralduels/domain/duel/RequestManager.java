@@ -48,4 +48,8 @@ public final class RequestManager {
         pendingRequests.clear();
         requestsByTarget.clear();
     }
+
+    public java.util.Collection<DuelRequest> getPendingRequests() {
+        return pendingRequests.values();
+    }
 }

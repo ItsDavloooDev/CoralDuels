@@ -77,6 +77,9 @@ public final class CoralDuelsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (duelManager != null) {
+            duelManager.stopCleanupTask();
+        }
         if (databaseService != null) {
             databaseService.close();
         }
