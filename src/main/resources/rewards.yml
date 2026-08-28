@@ -1,6 +1,6 @@
 rewards:
   enabled: true
-  winner:
+  win:
     - type: "COMMAND"
       weight: 100
       value: "eco give %player% 500"
@@ -13,13 +13,41 @@ rewards:
       weight: 10
       value: "lp user %player% permission settemp coralduels.vip 1d"
       message: "&aHai ottenuto &eVIP &aper 1 giorno!"
-  loser:
+    - type: "EXPERIENCE"
+      weight: 50
+      value: "50"
+      message: "&aHai ricevuto &e50 XP&a!"
+  loss:
     - type: "COMMAND"
       weight: 100
       value: "eco give %player% 100"
       message: "&eHai ricevuto &e$100 &eper la partecipazione."
-  participation:
+    - type: "EXPERIENCE"
+      weight: 50
+      value: "20"
+      message: "&eHai ricevuto &e20 XP &eper la partecipazione."
+  draw:
     - type: "COMMAND"
       weight: 100
-      value: "coralduels stats add %player% duels_played 1"
-      silent: true
+      value: "eco give %player% 250"
+      message: "&ePareggio! Ricevi &e$250&e."
+    - type: "EXPERIENCE"
+      weight: 50
+      value: "30"
+      message: "&eHai ricevuto &e30 XP &eper il pareggio."
+  kit:
+    classic:
+      - type: "ITEM"
+        weight: 20
+        value: "IRON_INGOT:5"
+        message: "&aBonus Classic: &e5 Lingotti di Ferro&a!"
+    archer:
+      - type: "ITEM"
+        weight: 20
+        value: "ARROW:16"
+        message: "&aBonus Archer: &e16 Frecce&a!"
+    tank:
+      - type: "ITEM"
+        weight: 20
+        value: "GOLDEN_APPLE:2"
+        message: "&aBonus Tank: &e2 Mele d'Oro&a!"

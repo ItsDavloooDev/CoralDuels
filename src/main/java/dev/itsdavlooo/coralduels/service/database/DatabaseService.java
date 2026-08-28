@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import dev.itsdavlooo.coralduels.CoralDuelsPlugin;
 import dev.itsdavlooo.coralduels.service.config.ConfigService;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -76,21 +76,21 @@ public final class StatisticManager {
     public void showStats(Player viewer, UUID targetUuid) {
         getOrCreateStatistic(targetUuid, Bukkit.getOfflinePlayer(targetUuid).getName())
                 .thenAccept(stat -> {
-                    String targetName = stat.getUsername();
+                    String targetName = stat.username();
                     if (viewer.getUniqueId().equals(targetUuid)) {
                         targetName = "Tu";
                     }
                     messages.send(viewer, "stats-header");
-                    messages.send(viewer, "stats-format", Map.of("stat", "Vittorie", "value", String.valueOf(stat.getWins())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Sconfitte", "value", String.valueOf(stat.getLosses())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Pareggi", "value", String.valueOf(stat.getDraws())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Giocate", "value", String.valueOf(stat.getDuelsPlayed())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "ELO", "value", String.valueOf(stat.getElo())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Streak", "value", String.valueOf(stat.getCurrentStreak())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Kill", "value", String.valueOf(stat.getKills())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Morti", "value", String.valueOf(stat.getDeaths())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Danno inflitto", "value", String.valueOf(stat.getTotalDamageDealt())));
-                    messages.send(viewer, "stats-format", Map.of("stat", "Danno subito", "value", String.valueOf(stat.getTotalDamageTaken())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Vittorie", "value", String.valueOf(stat.duelsWon())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Sconfitte", "value", String.valueOf(stat.duelsLost())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Pareggi", "value", String.valueOf(stat.duelsDraw())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Giocate", "value", String.valueOf(stat.duelsPlayed())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "ELO", "value", String.valueOf(stat.eloRating())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Streak", "value", String.valueOf(stat.currentStreak())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Kill", "value", String.valueOf(stat.kills())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Morti", "value", String.valueOf(stat.deaths())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Danno inflitto", "value", String.valueOf(stat.totalDamageDealt())));
+                    messages.send(viewer, "stats-format", Map.of("stat", "Danno subito", "value", String.valueOf(stat.totalDamageTaken())));
                 })
                 .exceptionally(e -> {
                     messages.send(viewer, "database-error");
@@ -106,9 +106,9 @@ public final class StatisticManager {
                     for (LeaderboardEntry entry : entries) {
                         messages.send(viewer, "leaderboard-format", Map.of(
                                 "pos", String.valueOf(pos),
-                                "player", entry.getUsername(),
-                                "wins", String.valueOf(entry.getWins()),
-                                "elo", String.valueOf(entry.getElo())
+                                "player", entry.username(),
+                                "wins", String.valueOf(entry.wins()),
+                                "elo", String.valueOf(entry.elo())
                         ));
                         pos++;
                     }

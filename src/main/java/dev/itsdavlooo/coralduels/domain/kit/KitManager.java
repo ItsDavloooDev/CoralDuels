@@ -5,6 +5,7 @@ import dev.itsdavlooo.coralduels.service.config.ConfigService;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,11 +28,26 @@ public final class KitManager {
             for (String key : section.getKeys(false)) {
                 ConfigurationSection kitSection = section.getConfigurationSection(key);
                 if (kitSection != null) {
-                    Kit kit = Kit.fromConfig(key, kitSection);
-                    kits.put(key.toLowerCase(), kit);
+                    try {
+                        Kit kit = Kit.fromConfig(key, kitSection);
+                        if (validateKit(kit)) {
+                            kits.put(key.toLowerCase(), kit);
+                        } else {
+                            CoralDuelsPlugin.getInstance().getLogger().warning("Kit invalido saltato: " + key);
+                        }
+                    } catch (Exception e) {
+                        CoralDuelsPlugin.getInstance().getLogger().severe("Errore caricamento kit " + key + ": " + e.getMessage());
+                    }
                 }
             }
         }
+    }
+
+    private boolean validateKit(Kit kit) {
+        return kit.getName() != null && !kit.getName().isEmpty()
+                && kit.getItems() != null
+                && kit.getArmor() != null
+                && kit.getArmor().length == 4;
     }
 
     public void reload() {

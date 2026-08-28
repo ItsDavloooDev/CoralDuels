@@ -1,5 +1,7 @@
 package dev.itsdavlooo.coralduels.domain.statistic;
 
+import java.util.UUID;
+
 public record PlayerStatistic(
         UUID uuid,
         String username,

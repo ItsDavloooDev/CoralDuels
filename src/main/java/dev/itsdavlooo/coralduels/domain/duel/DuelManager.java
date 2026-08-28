@@ -123,8 +123,8 @@ public final class DuelManager {
                 }
                 Player challenger = Bukkit.getPlayer(session.challenger().getUuid());
                 Player target = Bukkit.getPlayer(session.target().getUuid());
-                if (challenger != null) challenger.sendMessage("§aIl duello inizia tra §e" + remaining + " §asecondi...");
-                if (target != null) target.sendMessage("§aIl duello inizia tra §e" + remaining + " §asecondi...");
+                if (challenger != null) messages.send(challenger, "duel-starting", java.util.Map.of("seconds", String.valueOf(remaining)));
+                if (target != null) messages.send(target, "duel-starting", java.util.Map.of("seconds", String.valueOf(remaining)));
                 remaining--;
             }
         }, 0L, 20L);
@@ -138,8 +138,8 @@ public final class DuelManager {
 
             Player challenger = Bukkit.getPlayer(session.challenger().getUuid());
             Player target = Bukkit.getPlayer(session.target().getUuid());
-            if (challenger != null) challenger.sendMessage("§aDuello iniziato! Buona fortuna!");
-            if (target != null) target.sendMessage("§aDuello iniziato! Buona fortuna!");
+            if (challenger != null) messages.send(challenger, "duel-start");
+            if (target != null) messages.send(target, "duel-start");
 
             int maxDuration = CoralDuelsPlugin.getInstance().getConfigService().getConfig().getInt("timers.max-duel-duration", 300);
             Bukkit.getScheduler().runTaskLater(CoralDuelsPlugin.getInstance(), () -> {
@@ -156,8 +156,8 @@ public final class DuelManager {
         sessionManager.getSession(sessionId).ifPresent(session -> {
             Player challenger = Bukkit.getPlayer(session.challenger().getUuid());
             Player target = Bukkit.getPlayer(session.target().getUuid());
-            if (challenger != null) challenger.sendMessage("§eTempo scaduto! Pareggio.");
-            if (target != null) target.sendMessage("§eTempo scaduto! Pareggio.");
+            if (challenger != null) messages.send(challenger, "duel-end-draw", java.util.Map.of("opponent", target != null ? target.getName() : "Unknown"));
+            if (target != null) messages.send(target, "duel-end-draw", java.util.Map.of("opponent", challenger != null ? challenger.getName() : "Unknown"));
             endDuel(sessionId, null, 0, 0);
         });
     }

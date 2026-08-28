@@ -2,9 +2,13 @@ package dev.itsdavlooo.coralduels.domain.reward;
 
 import dev.itsdavlooo.coralduels.CoralDuelsPlugin;
 import dev.itsdavlooo.coralduels.service.config.ConfigService;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -83,6 +87,11 @@ public final class RewardManager {
         executeRewards(player, "draw");
     }
 
+    public void giveRewards(Player player, String kitName) {
+        executeRewards(player, "win");
+        executeRewards(player, "kit." + kitName.toLowerCase());
+    }
+
     private void executeReward(Player player, Reward reward) {
         String parsedValue = reward.value()
                 .replace("%player%", player.getName())
@@ -90,18 +99,39 @@ public final class RewardManager {
 
         switch (reward.type()) {
             case COMMAND -> plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), parsedValue);
-            case ITEM -> {
-            }
-            case MONEY -> {
-            }
+            case ITEM -> giveItemReward(player, parsedValue);
+            case MONEY -> giveMoneyReward(player, parsedValue);
             case EXPERIENCE -> player.giveExp(Integer.parseInt(parsedValue));
-            case PERMISSION -> {
-            }
+            case PERMISSION -> givePermissionReward(player, parsedValue);
         }
 
         if (!reward.silent() && !reward.message().isEmpty()) {
-            player.sendMessage(net.kyori.adventure.text.Component.text(reward.message())
-                    .replaceText(b -> b.match('&').replacement("§")));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', reward.message()));
+        }
+    }
+
+    private void giveItemReward(Player player, String value) {
+        String[] parts = value.split(":");
+        Material material = Material.getMaterial(parts[0].toUpperCase());
+        if (material == null) return;
+        int amount = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
+        ItemStack item = new ItemStack(material, Math.min(amount, 64));
+        HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+        if (!leftover.isEmpty()) {
+            player.getWorld().dropItemNaturally(player.getLocation(), leftover.values().iterator().next());
+        }
+    }
+
+    private void giveMoneyReward(Player player, String value) {
+        String cmd = "eco give " + player.getName() + " " + value;
+        plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd);
+    }
+
+    private void givePermissionReward(Player player, String value) {
+        String[] parts = value.split(":");
+        if (parts.length >= 2) {
+            String cmd = "lp user " + player.getName() + " permission settemp " + parts[0] + " " + parts[1];
+            plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd);
         }
     }
 

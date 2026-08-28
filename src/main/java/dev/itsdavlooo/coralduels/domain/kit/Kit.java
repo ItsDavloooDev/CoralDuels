@@ -1,5 +1,6 @@
 package dev.itsdavlooo.coralduels.domain.kit;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -24,7 +25,7 @@ public final class Kit {
     private final List<KitEffect> effects;
     private final int cooldown;
 
-    private Kit(String name, String displayName, String permission, ItemStack icon,
+    public Kit(String name, String displayName, String permission, ItemStack icon,
                 Map<Integer, ItemStack> items, ItemStack[] armor, List<KitEffect> effects, int cooldown) {
         this.name = name;
         this.displayName = displayName;
@@ -54,10 +55,10 @@ public final class Kit {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String name = section.getString("name");
-            if (name != null) meta.setDisplayName(net.kyori.adventure.text.Component.text(name).replaceText(b -> b.match('&').replacement("§")));
+            if (name != null) meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
             List<String> lore = section.getStringList("lore");
             if (!lore.isEmpty()) {
-                meta.setLore(lore.stream().map(l -> net.kyori.adventure.text.Component.text(l).replaceText(b -> b.match('&').replacement("§"))).toList());
+                meta.setLore(lore.stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
             }
             ConfigurationSection enchants = section.getConfigurationSection("enchantments");
             if (enchants != null) {

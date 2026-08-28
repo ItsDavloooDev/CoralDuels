@@ -13,6 +13,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import java.util.UUID;
+
 public final class PlayerListener implements Listener {
 
     private final DuelManager duelManager;
