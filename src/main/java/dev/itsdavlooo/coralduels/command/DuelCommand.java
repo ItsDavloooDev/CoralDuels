@@ -186,7 +186,8 @@ public final class DuelCommand implements CommandExecutor {
     }
 
     private boolean handleLeaderboard(Player player, String[] args) {
-        duelManager.getStatisticManager().showLeaderboard(player);
+        String category = args.length >= 2 ? args[1].toLowerCase() : "elo";
+        duelManager.getStatisticManager().showLeaderboard(player, category);
         return true;
     }
 }

@@ -98,16 +98,29 @@ public final class StatisticManager {
                 });
     }
 
-    public void showLeaderboard(Player viewer) {
-        getLeaderboard("elo", 10)
+    public void showLeaderboard(Player viewer, String category) {
+        String normalized = switch (category.toLowerCase()) {
+            case "wins", "vittorie" -> "wins";
+            case "losses", "sconfitte", "played", "giocate" -> "played";
+            case "streak", "striscia" -> "streak";
+            case "kills", "uccisioni" -> "kills";
+            case "deaths", "morti" -> "deaths";
+            default -> "elo";
+        };
+        getLeaderboard(normalized, 10)
                 .thenAccept(entries -> {
                     messages.send(viewer, "leaderboard-header");
+                    if (entries.isEmpty()) {
+                        messages.send(viewer, "leaderboard-empty");
+                        return;
+                    }
                     int pos = 1;
                     for (LeaderboardEntry entry : entries) {
                         messages.send(viewer, "leaderboard-format", Map.of(
                                 "pos", String.valueOf(pos),
                                 "player", entry.username(),
                                 "wins", String.valueOf(entry.wins()),
+                                "losses", String.valueOf(entry.losses()),
                                 "elo", String.valueOf(entry.elo())
                         ));
                         pos++;

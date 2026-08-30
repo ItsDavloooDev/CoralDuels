@@ -9,6 +9,8 @@ import dev.itsdavlooo.coralduels.listener.PlayerListener;
 import dev.itsdavlooo.coralduels.listener.WorldListener;
 import dev.itsdavlooo.coralduels.service.config.ConfigService;
 import dev.itsdavlooo.coralduels.service.database.DatabaseService;
+import dev.itsdavlooo.coralduels.service.database.repository.MySQLStatisticRepository;
+import dev.itsdavlooo.coralduels.service.database.repository.StatisticRepository;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import dev.itsdavlooo.coralduels.service.world.DuelWorldManager;
 import dev.itsdavlooo.coralduels.domain.duel.DuelManager;
@@ -57,7 +59,8 @@ public final class CoralDuelsPlugin extends JavaPlugin {
         playerStateManager = new PlayerStateManager(this);
         arenaManager = new ArenaManager(configService, this);
         rewardManager = new RewardManager(configService, this);
-        statisticManager = new StatisticManager(databaseService);
+        StatisticRepository statisticRepository = new MySQLStatisticRepository(databaseService);
+        statisticManager = new StatisticManager(statisticRepository);
         requestManager = new RequestManager();
         sessionManager = new SessionManager();
         duelManager = new DuelManager(requestManager, sessionManager,
