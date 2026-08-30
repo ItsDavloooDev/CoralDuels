@@ -8,7 +8,7 @@ import dev.itsdavlooo.coralduels.domain.kit.KitManager;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
 import dev.itsdavlooo.coralduels.domain.arena.ArenaManager;
 import dev.itsdavlooo.coralduels.domain.reward.RewardManager;
-import dev.itsdavlooo.coralduels.domain.statistic.StatisticRepository;
+import dev.itsdavlooo.coralduels.service.database.repository.StatisticRepository;
 
 public final class ModuleRegistry {
 

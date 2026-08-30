@@ -1,13 +1,16 @@
 package dev.itsdavlooo.coralduels.command;
 
+import dev.itsdavlooo.coralduels.CoralDuelsPlugin;
 import dev.itsdavlooo.coralduels.domain.kit.Kit;
 import dev.itsdavlooo.coralduels.domain.kit.KitManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
 import java.util.Optional;
@@ -91,13 +94,13 @@ public final class KitCommand implements CommandExecutor {
         Kit kit = kitOpt.get();
         messages.send(player, "kit-preview-header", Map.of("kit", kit.getDisplayName()));
         kit.getItems().forEach((slot, item) -> {
-            if (item.getType() != org.bukkit.Material.AIR) {
+            if (item.getType() != Material.AIR) {
                 player.sendMessage(" §7Slot " + slot + ": §f" + item.getType().name() + " §7x" + item.getAmount());
             }
         });
         for (int i = 0; i < kit.getArmor().length; i++) {
             ItemStack piece = kit.getArmor()[i];
-            if (piece.getType() != org.bukkit.Material.AIR) {
+            if (piece.getType() != Material.AIR) {
                 String slotName = switch (i) {
                     case 0 -> "Boots";
                     case 1 -> "Leggings";

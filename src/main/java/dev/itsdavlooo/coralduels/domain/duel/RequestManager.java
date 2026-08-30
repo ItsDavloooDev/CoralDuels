@@ -1,5 +1,7 @@
 package dev.itsdavlooo.coralduels.domain.duel;
 
+import dev.itsdavlooo.coralduels.domain.kit.Kit;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,8 +14,15 @@ public final class RequestManager {
 
     public DuelRequest addRequest(UUID challenger, UUID target, Kit kit) {
         DuelRequest request = new DuelRequest(UUID.randomUUID(), challenger, target, kit, System.currentTimeMillis());
-        pendingRequests.put(request.id(), request);
-        requestsByTarget.put(request.target(), request);
+        DuelRequest existing = pendingRequests.putIfAbsent(request.id(), request);
+        if (existing != null) {
+            return existing;
+        }
+        DuelRequest existingTarget = requestsByTarget.putIfAbsent(target, request);
+        if (existingTarget != null) {
+            pendingRequests.remove(request.id());
+            return existingTarget;
+        }
         return request;
     }
 

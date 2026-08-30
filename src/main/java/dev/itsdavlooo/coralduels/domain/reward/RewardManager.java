@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 public final class RewardManager {
 
@@ -19,6 +20,8 @@ public final class RewardManager {
     private final CoralDuelsPlugin plugin;
     private final Map<String, List<Reward>> rewards = new HashMap<>();
     private final Random random = new Random();
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(\\w+)%");
+    private static final java.util.Set<String> ALLOWED_PLACEHOLDERS = java.util.Set.of("player", "uuid", "kit_id");
 
     public RewardManager(ConfigService config, CoralDuelsPlugin plugin) {
         this.config = config;
@@ -45,7 +48,7 @@ public final class RewardManager {
         if (list == null) return List.of();
         return list.stream()
                 .filter(o -> o instanceof Map)
-                .map(o -> (Map<?, ?>) o)
+                .map(o -> (Map<String, Object>) o)
                 .map(map -> {
                     RewardType type = RewardType.valueOf(((String) map.getOrDefault("type", "COMMAND")).toUpperCase());
                     int weight = ((Number) map.getOrDefault("weight", 100)).intValue();
@@ -93,21 +96,33 @@ public final class RewardManager {
     }
 
     private void executeReward(Player player, Reward reward) {
-        String parsedValue = reward.value()
-                .replace("%player%", player.getName())
-                .replace("%uuid%", player.getUniqueId().toString());
+        String parsedValue = sanitizeValue(reward.value(), player);
+        String parsedMessage = sanitizeValue(reward.message(), player);
 
         switch (reward.type()) {
-            case COMMAND -> plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), parsedValue);
+            case COMMAND -> plugin.getServer().getGlobalRegionScheduler().run(plugin, task ->
+                    plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), parsedValue));
             case ITEM -> giveItemReward(player, parsedValue);
             case MONEY -> giveMoneyReward(player, parsedValue);
             case EXPERIENCE -> player.giveExp(Integer.parseInt(parsedValue));
             case PERMISSION -> givePermissionReward(player, parsedValue);
         }
 
-        if (!reward.silent() && !reward.message().isEmpty()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', reward.message()));
+        if (!reward.silent() && !parsedMessage.isEmpty()) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', parsedMessage));
         }
+    }
+
+    private String sanitizeValue(String value, Player player) {
+        return PLACEHOLDER_PATTERN.matcher(value).replaceAll(match -> {
+            String placeholder = match.group(1);
+            return ALLOWED_PLACEHOLDERS.contains(placeholder) ? switch (placeholder) {
+                case "player" -> player.getName();
+                case "uuid" -> player.getUniqueId().toString();
+                case "kit_id" -> "";
+                default -> "";
+            } : match.group(0);
+        });
     }
 
     private void giveItemReward(Player player, String value) {
@@ -124,14 +139,16 @@ public final class RewardManager {
 
     private void giveMoneyReward(Player player, String value) {
         String cmd = "eco give " + player.getName() + " " + value;
-        plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd);
+        plugin.getServer().getGlobalRegionScheduler().run(plugin, task ->
+                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd));
     }
 
     private void givePermissionReward(Player player, String value) {
         String[] parts = value.split(":");
         if (parts.length >= 2) {
             String cmd = "lp user " + player.getName() + " permission settemp " + parts[0] + " " + parts[1];
-            plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd);
+            plugin.getServer().getGlobalRegionScheduler().run(plugin, task ->
+                    plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), cmd));
         }
     }
 

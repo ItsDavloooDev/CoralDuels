@@ -24,6 +24,10 @@ public interface StatisticRepository {
 
     CompletableFuture<Void> recordDuelHistory(DuelHistoryRecord record);
 
+    CompletableFuture<Void> recordMatchResult(UUID winner, UUID loser, String kitName, int winnerDamage, int loserDamage);
+
+    CompletableFuture<Void> recordDrawResult(UUID player1, UUID player2, String kitName, int damage1, int damage2);
+
     record DuelHistoryRecord(
             UUID duelId,
             UUID challenger,

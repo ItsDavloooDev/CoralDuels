@@ -8,8 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.concurrent.CompletableFuture;
 
 public final class DatabaseService {
 
@@ -42,25 +41,25 @@ public final class DatabaseService {
         return dataSource.getConnection();
     }
 
-    public void executeAsync(Consumer<Connection> consumer) {
-        plugin.getServer().getAsyncScheduler().runNow(plugin, task -> {
+    public CompletableFuture<Void> executeAsync(java.util.function.Consumer<Connection> consumer) {
+        return CompletableFuture.supplyAsync(() -> {
             try (Connection conn = getConnection()) {
                 consumer.accept(conn);
+                return null;
             } catch (SQLException e) {
-                plugin.getLogger().severe("Database error: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        });
+        }, runnable -> plugin.getServer().getAsyncScheduler().runNow(plugin, task -> runnable.run()));
     }
 
-    public <T> void queryAsync(String sql, Function<Connection, T> mapper, Consumer<T> callback) {
-        plugin.getServer().getAsyncScheduler().runNow(plugin, task -> {
+    public <T> CompletableFuture<T> queryAsync(java.util.function.Function<Connection, T> mapper) {
+        return CompletableFuture.supplyAsync(() -> {
             try (Connection conn = getConnection()) {
-                T result = mapper.apply(conn);
-                plugin.getServer().getGlobalRegionScheduler().run(plugin, t -> callback.accept(result));
+                return mapper.apply(conn);
             } catch (SQLException e) {
-                plugin.getLogger().severe("Database query error: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        });
+        }, runnable -> plugin.getServer().getAsyncScheduler().runNow(plugin, task -> runnable.run()));
     }
 
     public void close() {

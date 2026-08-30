@@ -40,7 +40,7 @@ public final class ConfigService {
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
         try (InputStream def = plugin.getResource(name)) {
             if (def != null) {
-                config.setDefaults(YamlConfiguration.loadConfiguration(def));
+                config.setDefaults(YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(def)));
             }
         } catch (IOException ignored) {}
         configs.put(name, config);

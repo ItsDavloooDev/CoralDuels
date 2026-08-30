@@ -60,6 +60,14 @@ public final class StatisticManager {
                 .thenCompose(v -> repository.updateStreak(uuid, 0));
     }
 
+    public CompletableFuture<Void> recordMatchResult(UUID winner, UUID loser, String kitName, int winnerDamage, int loserDamage) {
+        return repository.recordMatchResult(winner, loser, kitName, winnerDamage, loserDamage);
+    }
+
+    public CompletableFuture<Void> recordDrawResult(UUID player1, UUID player2, String kitName, int damage1, int damage2) {
+        return repository.recordDrawResult(player1, player2, kitName, damage1, damage2);
+    }
+
     public CompletableFuture<Void> recordDamage(UUID uuid, long dealt, long taken) {
         return repository.incrementStat(uuid, "total_damage_dealt", (int) dealt)
                 .thenCompose(v -> repository.incrementStat(uuid, "total_damage_taken", (int) taken));
@@ -69,13 +77,20 @@ public final class StatisticManager {
         return repository.updateElo(uuid, newElo);
     }
 
+    public CompletableFuture<Void> updateStreak(UUID uuid, int streak) {
+        return repository.updateStreak(uuid, streak);
+    }
+
     public CompletableFuture<Void> recordDuelHistory(dev.itsdavlooo.coralduels.service.database.repository.StatisticRepository.DuelHistoryRecord record) {
         return repository.recordDuelHistory(record);
     }
 
     public void showStats(Player viewer, UUID targetUuid) {
         getOrCreateStatistic(targetUuid, Bukkit.getOfflinePlayer(targetUuid).getName())
-                .thenAccept(stat -> {
+                .thenAcceptAsync(stat -> {
+                    if (!viewer.isOnline()) {
+                        return;
+                    }
                     String targetName = stat.username();
                     if (viewer.getUniqueId().equals(targetUuid)) {
                         targetName = "Tu";
@@ -91,9 +106,11 @@ public final class StatisticManager {
                     messages.send(viewer, "stats-format", Map.of("stat", "Morti", "value", String.valueOf(stat.deaths())));
                     messages.send(viewer, "stats-format", Map.of("stat", "Danno inflitto", "value", String.valueOf(stat.totalDamageDealt())));
                     messages.send(viewer, "stats-format", Map.of("stat", "Danno subito", "value", String.valueOf(stat.totalDamageTaken())));
-                })
+                }, runnable -> plugin.getServer().getGlobalRegionScheduler().run(plugin, task -> runnable.run()))
                 .exceptionally(e -> {
-                    messages.send(viewer, "database-error");
+                    if (viewer.isOnline()) {
+                        plugin.getServer().getGlobalRegionScheduler().run(plugin, task -> messages.send(viewer, "database-error"));
+                    }
                     return null;
                 });
     }
@@ -101,14 +118,18 @@ public final class StatisticManager {
     public void showLeaderboard(Player viewer, String category) {
         String normalized = switch (category.toLowerCase()) {
             case "wins", "vittorie" -> "wins";
-            case "losses", "sconfitte", "played", "giocate" -> "played";
+            case "losses", "sconfitte" -> "losses";
+            case "played", "giocate" -> "played";
             case "streak", "striscia" -> "streak";
             case "kills", "uccisioni" -> "kills";
             case "deaths", "morti" -> "deaths";
             default -> "elo";
         };
         getLeaderboard(normalized, 10)
-                .thenAccept(entries -> {
+                .thenAcceptAsync(entries -> {
+                    if (!viewer.isOnline()) {
+                        return;
+                    }
                     messages.send(viewer, "leaderboard-header");
                     if (entries.isEmpty()) {
                         messages.send(viewer, "leaderboard-empty");
@@ -125,9 +146,11 @@ public final class StatisticManager {
                         ));
                         pos++;
                     }
-                })
+                }, runnable -> plugin.getServer().getGlobalRegionScheduler().run(plugin, task -> runnable.run()))
                 .exceptionally(e -> {
-                    messages.send(viewer, "database-error");
+                    if (viewer.isOnline()) {
+                        plugin.getServer().getGlobalRegionScheduler().run(plugin, task -> messages.send(viewer, "database-error"));
+                    }
                     return null;
                 });
     }

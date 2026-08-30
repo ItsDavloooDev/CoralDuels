@@ -77,33 +77,33 @@ public final class MySQLStatisticRepository implements StatisticRepository {
             } catch (SQLException e) {
                 plugin.getLogger().severe("Failed to create history table: " + e.getMessage());
             }
+        }).exceptionally(e -> {
+            plugin.getLogger().severe("Table initialization failed: " + e.getMessage());
+            return null;
         });
     }
 
     @Override
     public CompletableFuture<Optional<PlayerStatistic>> findByUuid(UUID uuid) {
-        CompletableFuture<Optional<PlayerStatistic>> future = new CompletableFuture<>();
-        databaseService.queryAsync("SELECT * FROM coralduels_stats WHERE uuid = ?", conn -> {
+        return databaseService.queryAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "SELECT * FROM coralduels_stats WHERE uuid = ?")) {
                 stmt.setString(1, uuid.toString());
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        return mapResultSet(rs);
+                        return Optional.of(mapResultSet(rs));
                     }
                 }
             } catch (SQLException e) {
                 plugin.getLogger().severe("Error finding stat by UUID: " + e.getMessage());
             }
-            return null;
-        }, future::complete);
-        return future;
+            return Optional.<PlayerStatistic>empty();
+        });
     }
 
     @Override
     public CompletableFuture<PlayerStatistic> createOrUpdate(PlayerStatistic statistic) {
-        CompletableFuture<PlayerStatistic> future = new CompletableFuture<>();
-        databaseService.executeAsync(conn -> {
+        return databaseService.executeAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO coralduels_stats (uuid, username, duels_played, duels_won, duels_lost, duels_draw, " +
                             "kills, deaths, current_streak, best_streak, elo_rating, total_damage_dealt, total_damage_taken, " +
@@ -120,50 +120,45 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Error creating/updating statistic: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        }, v -> future.complete(statistic));
-        return future;
+        }).thenApply(v -> statistic);
     }
 
     @Override
     public CompletableFuture<List<LeaderboardEntry>> getLeaderboard(String category, int limit) {
-        CompletableFuture<List<LeaderboardEntry>> future = new CompletableFuture<>();
         String column = switch (category.toLowerCase()) {
             case "wins" -> "duels_won";
             case "played" -> "duels_played";
             case "losses" -> "duels_lost";
             default -> "elo_rating";
         };
-        databaseService.queryAsync(
-                "SELECT uuid, username, " + column + " as value FROM coralduels_stats ORDER BY " + column + " DESC LIMIT ?",
-                conn -> {
-                    try (PreparedStatement stmt = conn.prepareStatement(
-                            "SELECT uuid, username, " + column + " as value FROM coralduels_stats ORDER BY " + column + " DESC LIMIT ?")) {
-                        stmt.setInt(1, limit);
-                        List<LeaderboardEntry> entries = new ArrayList<>();
-                        try (ResultSet rs = stmt.executeQuery()) {
-                            int pos = 1;
-                            while (rs.next()) {
-                                entries.add(new LeaderboardEntry(
-                                        pos++,
-                                        UUID.fromString(rs.getString("uuid")),
-                                        rs.getString("username"),
-                                        rs.getInt("duels_won"),
-                                        rs.getInt("duels_lost"),
-                                        rs.getInt("elo_rating"),
-                                        ""
-                                ));
-                            }
-                        }
-                        return entries;
-                    } catch (SQLException e) {
-                        plugin.getLogger().severe("Error getting leaderboard: " + e.getMessage());
-                        return List.of();
+        return databaseService.queryAsync(conn -> {
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT uuid, username, duels_played, duels_won, duels_lost, duels_draw, kills, deaths, elo_rating " +
+                            "FROM coralduels_stats ORDER BY " + column + " DESC, username ASC LIMIT ?")) {
+                stmt.setInt(1, limit);
+                List<LeaderboardEntry> entries = new ArrayList<>();
+                try (ResultSet rs = stmt.executeQuery()) {
+                    int pos = 1;
+                    while (rs.next()) {
+                        entries.add(new LeaderboardEntry(
+                                pos++,
+                                UUID.fromString(rs.getString("uuid")),
+                                rs.getString("username"),
+                                rs.getInt("duels_won"),
+                                rs.getInt("duels_lost"),
+                                rs.getInt("elo_rating"),
+                                ""
+                        ));
                     }
-                },
-                future::complete
-        );
-        return future;
+                }
+                return entries;
+            } catch (SQLException e) {
+                plugin.getLogger().severe("Error getting leaderboard: " + e.getMessage());
+                return List.of();
+            }
+        });
     }
 
     @Override
@@ -174,8 +169,7 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                  "total_damage_dealt", "total_damage_taken" -> column;
             default -> throw new IllegalArgumentException("Invalid column: " + column);
         };
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        databaseService.executeAsync(conn -> {
+        return databaseService.executeAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "UPDATE coralduels_stats SET " + allowedColumn + " = " + allowedColumn + " + ? WHERE uuid = ?")) {
                 stmt.setInt(1, amount);
@@ -183,15 +177,14 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Error incrementing stat: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        }, v -> future.complete(null));
-        return future;
+        });
     }
 
     @Override
     public CompletableFuture<Void> updateElo(UUID uuid, int newElo) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        databaseService.executeAsync(conn -> {
+        return databaseService.executeAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "UPDATE coralduels_stats SET elo_rating = ?, best_streak = GREATEST(best_streak, current_streak) WHERE uuid = ?")) {
                 stmt.setInt(1, newElo);
@@ -199,15 +192,14 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Error updating ELO: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        }, v -> future.complete(null));
-        return future;
+        });
     }
 
     @Override
     public CompletableFuture<Void> updateStreak(UUID uuid, int streak) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        databaseService.executeAsync(conn -> {
+        return databaseService.executeAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "UPDATE coralduels_stats SET current_streak = ?, best_streak = GREATEST(best_streak, ?) WHERE uuid = ?")) {
                 stmt.setInt(1, streak);
@@ -216,15 +208,14 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Error updating streak: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        }, v -> future.complete(null));
-        return future;
+        });
     }
 
     @Override
     public CompletableFuture<Void> recordDuelHistory(DuelHistoryRecord record) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        databaseService.executeAsync(conn -> {
+        return databaseService.executeAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
                     "INSERT INTO coralduels_history (duel_id, challenger, target, winner, kit_name, arena_name, " +
                             "state, duration_ticks, challenger_damage, target_damage, started_at, ended_at) " +
@@ -244,9 +235,126 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                 stmt.executeUpdate();
             } catch (SQLException e) {
                 plugin.getLogger().severe("Error recording duel history: " + e.getMessage());
+                throw new RuntimeException(e);
             }
-        }, v -> future.complete(null));
-        return future;
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> recordMatchResult(UUID winner, UUID loser, String kitName, int winnerDamage, int loserDamage) {
+        return databaseService.executeAsync(conn -> {
+            try {
+                conn.setAutoCommit(false);
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE coralduels_stats SET " +
+                                "duels_played = duels_played + 1, " +
+                                "duels_won = duels_won + 1, " +
+                                "current_streak = current_streak + 1, " +
+                                "best_streak = GREATEST(best_streak, current_streak + 1), " +
+                                "kills = kills + 1, " +
+                                "total_damage_dealt = total_damage_dealt + ?, " +
+                                "total_damage_taken = total_damage_taken + ?, " +
+                                "favorite_kit = ?, " +
+                                "last_duel_at = ? " +
+                                "WHERE uuid = ?")) {
+                    stmt.setInt(1, winnerDamage);
+                    stmt.setInt(2, loserDamage);
+                    stmt.setString(3, kitName);
+                    stmt.setLong(4, System.currentTimeMillis());
+                    stmt.setString(5, winner.toString());
+                    stmt.executeUpdate();
+                }
+
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE coralduels_stats SET " +
+                                "duels_played = duels_played + 1, " +
+                                "duels_lost = duels_lost + 1, " +
+                                "current_streak = 0, " +
+                                "deaths = deaths + 1, " +
+                                "total_damage_dealt = total_damage_dealt + ?, " +
+                                "total_damage_taken = total_damage_taken + ?, " +
+                                "last_duel_at = ? " +
+                                "WHERE uuid = ?")) {
+                    stmt.setInt(1, loserDamage);
+                    stmt.setInt(2, winnerDamage);
+                    stmt.setLong(3, System.currentTimeMillis());
+                    stmt.setString(4, loser.toString());
+                    stmt.executeUpdate();
+                }
+
+                conn.commit();
+            } catch (SQLException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    plugin.getLogger().severe("Rollback failed: " + ex.getMessage());
+                }
+                plugin.getLogger().severe("Error recording match result: " + e.getMessage());
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException e) {
+                    plugin.getLogger().severe("Failed to restore autoCommit: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<Void> recordDrawResult(UUID player1, UUID player2, String kitName, int damage1, int damage2) {
+        return databaseService.executeAsync(conn -> {
+            try {
+                conn.setAutoCommit(false);
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE coralduels_stats SET " +
+                                "duels_played = duels_played + 1, " +
+                                "duels_draw = duels_draw + 1, " +
+                                "current_streak = 0, " +
+                                "total_damage_dealt = total_damage_dealt + ?, " +
+                                "total_damage_taken = total_damage_taken + ?, " +
+                                "last_duel_at = ? " +
+                                "WHERE uuid = ?")) {
+                    stmt.setInt(1, damage1);
+                    stmt.setInt(2, damage2);
+                    stmt.setLong(3, System.currentTimeMillis());
+                    stmt.setString(4, player1.toString());
+                    stmt.executeUpdate();
+                }
+
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "UPDATE coralduels_stats SET " +
+                                "duels_played = duels_played + 1, " +
+                                "duels_draw = duels_draw + 1, " +
+                                "current_streak = 0, " +
+                                "total_damage_dealt = total_damage_dealt + ?, " +
+                                "total_damage_taken = total_damage_taken + ?, " +
+                                "last_duel_at = ? " +
+                                "WHERE uuid = ?")) {
+                    stmt.setInt(1, damage2);
+                    stmt.setInt(2, damage1);
+                    stmt.setLong(3, System.currentTimeMillis());
+                    stmt.setString(4, player2.toString());
+                    stmt.executeUpdate();
+                }
+
+                conn.commit();
+            } catch (SQLException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    plugin.getLogger().severe("Rollback failed: " + ex.getMessage());
+                }
+                plugin.getLogger().severe("Error recording draw result: " + e.getMessage());
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    conn.setAutoCommit(true);
+                } catch (SQLException e) {
+                    plugin.getLogger().severe("Failed to restore autoCommit: " + e.getMessage());
+                }
+            }
+        });
     }
 
     private PlayerStatistic mapResultSet(ResultSet rs) throws SQLException {

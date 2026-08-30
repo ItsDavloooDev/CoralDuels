@@ -120,7 +120,7 @@ public final class Kit {
         List<KitEffect> effects = new ArrayList<>();
         for (Object obj : list) {
             if (obj instanceof Map) {
-                Map<?, ?> map = (Map<?, ?>) obj;
+                Map<String, Object> map = (Map<String, Object>) obj;
                 String type = (String) map.get("type");
                 int amplifier = ((Number) map.getOrDefault("amplifier", 0)).intValue();
                 int duration = ((Number) map.getOrDefault("duration", 0)).intValue();

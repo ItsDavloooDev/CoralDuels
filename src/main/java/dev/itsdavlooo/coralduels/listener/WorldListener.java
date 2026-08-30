@@ -2,6 +2,7 @@ package dev.itsdavlooo.coralduels.listener;
 
 import dev.itsdavlooo.coralduels.CoralDuelsPlugin;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
+import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -19,7 +20,8 @@ public final class WorldListener implements Listener {
     public void onWorldChange(PlayerChangedWorldEvent event) {
         if (playerStateManager.isInDuel(event.getPlayer().getUniqueId())) {
             event.getPlayer().sendMessage("§cNon puoi cambiare mondo durante un duello.");
-            event.getPlayer().teleport(event.getFrom());
+            Location fromLoc = new Location(event.getFrom(), 0, 64, 0);
+            event.getPlayer().teleport(fromLoc);
         }
     }
 }

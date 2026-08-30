@@ -56,7 +56,7 @@ public record PlayerSnapshot(
         player.setGameMode(gameMode);
         player.setFlying(flying);
         player.setAllowFlight(allowFlight);
-        player.getActivePotionEffects().forEach(player::removePotionEffect);
+        player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
         effects.forEach(player::addPotionEffect);
         player.setLevel(level);
         player.setExp(exp);
