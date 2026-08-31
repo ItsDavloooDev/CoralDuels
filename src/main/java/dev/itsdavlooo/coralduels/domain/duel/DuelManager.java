@@ -114,8 +114,15 @@ public final class DuelManager {
         sessionManager.addSession(session);
         playerStateManager.registerDuel(new Duel(session));
 
-        challengerPlayer.teleport(arena.getSpawn1());
-        targetPlayer.teleport(arena.getSpawn2());
+        playerStateManager.setDuelTeleporting(challengerPlayer.getUniqueId(), true);
+        playerStateManager.setDuelTeleporting(targetPlayer.getUniqueId(), true);
+        try {
+            challengerPlayer.teleport(arena.getSpawn1());
+            targetPlayer.teleport(arena.getSpawn2());
+        } finally {
+            playerStateManager.setDuelTeleporting(challengerPlayer.getUniqueId(), false);
+            playerStateManager.setDuelTeleporting(targetPlayer.getUniqueId(), false);
+        }
 
         request.kit().giveItems(challengerPlayer);
         request.kit().giveItems(targetPlayer);
@@ -189,10 +196,10 @@ public final class DuelManager {
             Player opponent = Bukkit.getPlayer(opponentUuid);
 
             if (player != null) {
-                playerStateManager.restoreSnapshot(playerUuid, player);
+                restoreWithTeleportPermission(playerUuid, player);
             }
             if (opponent != null) {
-                playerStateManager.restoreSnapshot(opponentUuid, opponent);
+                restoreWithTeleportPermission(opponentUuid, opponent);
                 messages.send(opponent, "opponent-left", Map.of("opponent", player != null ? player.getName() : "Unknown"));
             }
 
@@ -232,8 +239,8 @@ public final class DuelManager {
                 statisticManager.recordDrawResult(session.challenger().getUuid(), session.target().getUuid(), session.kit().getName(), challengerDamage, targetDamage);
             }
 
-            if (challenger != null) playerStateManager.restoreSnapshot(session.challenger().getUuid(), challenger);
-            if (target != null) playerStateManager.restoreSnapshot(session.target().getUuid(), target);
+            if (challenger != null) restoreWithTeleportPermission(session.challenger().getUuid(), challenger);
+            if (target != null) restoreWithTeleportPermission(session.target().getUuid(), target);
 
             sessionManager.removeSession(sessionId);
             playerStateManager.unregisterDuel(new Duel(session));
@@ -260,6 +267,15 @@ public final class DuelManager {
             if (target != null) messages.send(target, "request-expired");
             requestManager.removeRequest(requestId);
         });
+    }
+
+    private void restoreWithTeleportPermission(UUID uuid, Player player) {
+        playerStateManager.setDuelTeleporting(uuid, true);
+        try {
+            playerStateManager.restoreSnapshot(uuid, player);
+        } finally {
+            playerStateManager.setDuelTeleporting(uuid, false);
+        }
     }
 
     private void cancelTasksForSession(UUID sessionId) {

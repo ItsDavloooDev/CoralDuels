@@ -3,17 +3,22 @@ package dev.itsdavlooo.coralduels.listener;
 import dev.itsdavlooo.coralduels.CoralDuelsPlugin;
 import dev.itsdavlooo.coralduels.domain.duel.DuelManager;
 import dev.itsdavlooo.coralduels.domain.duel.RequestManager;
+import dev.itsdavlooo.coralduels.domain.player.PlayerSnapshot;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class PlayerListener implements Listener {
 
@@ -21,6 +26,7 @@ public final class PlayerListener implements Listener {
     private final RequestManager requestManager;
     private final PlayerStateManager playerStateManager;
     private final MessageService messages;
+    private final Map<UUID, Location> pendingRespawns = new ConcurrentHashMap<>();
 
     public PlayerListener() {
         CoralDuelsPlugin plugin = CoralDuelsPlugin.getInstance();
@@ -47,7 +53,21 @@ public final class PlayerListener implements Listener {
         Player player = event.getEntity();
         if (playerStateManager.isInDuel(player.getUniqueId())) {
             event.setDeathMessage(null);
+            event.setKeepInventory(true);
+            event.setKeepLevel(true);
+            playerStateManager.getSnapshot(player.getUniqueId())
+                    .map(PlayerSnapshot::location)
+                    .ifPresent(location -> pendingRespawns.put(player.getUniqueId(), location));
             duelManager.handleDuelDeath(player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        Location respawnLocation = pendingRespawns.remove(player.getUniqueId());
+        if (respawnLocation != null) {
+            event.setRespawnLocation(respawnLocation);
         }
     }
 
@@ -61,6 +81,7 @@ public final class PlayerListener implements Listener {
             duelManager.cancelDuel(uuid);
         }
 
+        pendingRespawns.remove(uuid);
         playerStateManager.cleanupPlayer(uuid);
     }
 }

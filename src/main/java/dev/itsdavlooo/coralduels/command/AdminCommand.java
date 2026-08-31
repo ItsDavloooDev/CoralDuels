@@ -88,23 +88,26 @@ public final class AdminCommand implements CommandExecutor {
             String target = args[1].toLowerCase();
             switch (target) {
                 case "config" -> {
-                    configService.reload();
+                    configService.reload("config.yml");
                     messages.send(player, "reloaded-config");
                 }
                 case "kits" -> {
+                    configService.reload("kits.yml");
                     kitManager.reload();
                     messages.send(player, "reloaded-kits");
                 }
                 case "arenas" -> {
+                    configService.reload("arenas.yml");
                     arenaManager.reload();
                     messages.send(player, "reloaded-arenas");
                 }
                 case "rewards" -> {
+                    configService.reload("rewards.yml");
                     rewardManager.reload();
                     messages.send(player, "reloaded-rewards");
                 }
                 case "messages" -> {
-                    configService.reload();
+                    configService.reload("messages.yml");
                     messages.send(player, "reloaded-messages");
                 }
                 default -> messages.send(player, "admin-reload-unknown", Map.of("target", target));

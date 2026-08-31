@@ -12,13 +12,22 @@ commands:
   dueladmin:
     description: Comandi amministrativi per i duelli
     usage: /dueladmin <reload|arena|kit|forceend>
-    permission: coralduels.admin.reload
     aliases: [dueladm]
   kit:
     description: Gestione kit
     usage: /kit <list|select|preview>
     aliases: [kits]
 permissions:
+  coralduels.admin:
+    description: Accesso a tutti i comandi amministrativi
+    default: op
+    children:
+      coralduels.admin.reload: true
+      coralduels.admin.arena.create: true
+      coralduels.admin.arena.delete: true
+      coralduels.admin.arena.list: true
+      coralduels.admin.kit.reload: true
+      coralduels.admin.forceend: true
   coralduels.duel.send:
     description: Permette di sfidare un giocatore
     default: true

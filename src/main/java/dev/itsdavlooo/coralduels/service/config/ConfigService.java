@@ -51,6 +51,10 @@ public final class ConfigService {
         loadAll();
     }
 
+    public void reload(String name) {
+        load(name);
+    }
+
     public FileConfiguration get(String name) {
         return configs.get(name);
     }

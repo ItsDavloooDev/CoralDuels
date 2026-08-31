@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,6 +16,7 @@ public final class PlayerStateManager {
     private final Map<UUID, DuelPlayer> savedStates = new ConcurrentHashMap<>();
     private final Map<UUID, PlayerSnapshot> snapshots = new ConcurrentHashMap<>();
     private final Map<UUID, Duel> activeDuels = new ConcurrentHashMap<>();
+    private final Set<UUID> duelTeleporting = ConcurrentHashMap.newKeySet();
     private final CoralDuelsPlugin plugin;
 
     public PlayerStateManager(CoralDuelsPlugin plugin) {
@@ -71,9 +73,22 @@ public final class PlayerStateManager {
         return duel != null && duel.isActive();
     }
 
+    public void setDuelTeleporting(UUID uuid, boolean teleporting) {
+        if (teleporting) {
+            duelTeleporting.add(uuid);
+        } else {
+            duelTeleporting.remove(uuid);
+        }
+    }
+
+    public boolean isDuelTeleporting(UUID uuid) {
+        return duelTeleporting.contains(uuid);
+    }
+
     public void cleanupPlayer(UUID uuid) {
         activeDuels.remove(uuid);
         savedStates.remove(uuid);
         snapshots.remove(uuid);
+        duelTeleporting.remove(uuid);
     }
 }

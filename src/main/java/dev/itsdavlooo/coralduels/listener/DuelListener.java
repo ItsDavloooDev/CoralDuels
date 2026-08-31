@@ -55,7 +55,7 @@ public final class DuelListener implements Listener {
         if (!playerStateManager.isInDuel(player.getUniqueId())) return;
 
         String cmd = event.getMessage().toLowerCase();
-        if (cmd.startsWith("/duel") || cmd.startsWith("/kit") || cmd.startsWith("/spawn") || cmd.startsWith("/home") || cmd.startsWith("/tp") || cmd.startsWith("/tpa")) {
+        if (cmd.startsWith("/kit") || cmd.startsWith("/spawn") || cmd.startsWith("/home") || cmd.startsWith("/tp") || cmd.startsWith("/tpa")) {
             event.setCancelled(true);
             player.sendMessage("§cNon puoi usare questo comando durante un duello.");
         }

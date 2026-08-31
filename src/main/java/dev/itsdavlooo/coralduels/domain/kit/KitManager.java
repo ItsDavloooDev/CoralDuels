@@ -68,7 +68,7 @@ public final class KitManager {
 
     public void giveKit(Player player, Kit kit) {
         player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
+        player.getInventory().setArmorContents(new ItemStack[4]);
 
         for (Map.Entry<Integer, ItemStack> entry : kit.getItems().entrySet()) {
             player.getInventory().setItem(entry.getKey(), entry.getValue().clone());

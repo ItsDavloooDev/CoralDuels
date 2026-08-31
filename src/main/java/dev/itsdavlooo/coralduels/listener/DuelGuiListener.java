@@ -23,13 +23,9 @@ public final class DuelGuiListener implements Listener {
         Inventory clicked = event.getClickedInventory();
         if (clicked == null) return;
 
-        String title = event.getView().getTitle();
-        if (title.equals(DuelGuiManager.KIT_SELECT_TITLE)) {
+        if (event.getView().getTitle().equals(DuelGuiManager.KIT_SELECT_TITLE)) {
             event.setCancelled(true);
             guiManager.handleKitSelectionClick(player, event.getSlot());
-        } else if (title.startsWith(DuelGuiManager.REQUEST_TITLE_PREFIX)) {
-            event.setCancelled(true);
-            guiManager.handleRequestGuiClick(player, event.getSlot());
         }
     }
 

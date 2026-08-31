@@ -8,6 +8,11 @@ import dev.itsdavlooo.coralduels.domain.kit.Kit;
 import dev.itsdavlooo.coralduels.domain.kit.KitManager;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -26,10 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class DuelGuiManager {
 
     public static final String KIT_SELECT_TITLE = "§8Seleziona un Kit";
-    public static final String REQUEST_TITLE_PREFIX = "§8Sfida da ";
-
-    private static final int ACCEPT_SLOT = 2;
-    private static final int DENY_SLOT = 6;
 
     private final MessageService messages;
     private final DuelManager duelManager;
@@ -40,7 +41,6 @@ public final class DuelGuiManager {
 
     private final Map<UUID, UUID> kitSelectionTargets = new ConcurrentHashMap<>();
     private final Map<UUID, List<String>> kitSelectionKits = new ConcurrentHashMap<>();
-    private final Map<UUID, UUID> requestGuis = new ConcurrentHashMap<>();
 
     public DuelGuiManager(MessageService messages, DuelManager duelManager, RequestManager requestManager,
                           KitManager kitManager, PlayerStateManager playerStateManager) {
@@ -99,39 +99,9 @@ public final class DuelGuiManager {
         sendChallenge(player, target, kits.get(slot));
     }
 
-    public void openRequestGui(DuelRequest request) {
-        Player target = Bukkit.getPlayer(request.target());
-        if (target == null) return;
-        Player challenger = Bukkit.getPlayer(request.challenger());
-        requestGuis.put(target.getUniqueId(), request.id());
-
-        Inventory inv = Bukkit.createInventory(null, 9,
-                REQUEST_TITLE_PREFIX + (challenger != null ? challenger.getName() : "?"));
-        inv.setItem(ACCEPT_SLOT, buildItem(Material.GREEN_DYE, "§aAccetta il duello", "§7Clicca per accettare la sfida"));
-        inv.setItem(DENY_SLOT, buildItem(Material.RED_DYE, "§cRifiuta il duello", "§7Clicca per rifiutare la sfida"));
-        target.openInventory(inv);
-    }
-
-    public void handleRequestGuiClick(Player player, int slot) {
-        if (slot != ACCEPT_SLOT && slot != DENY_SLOT) return;
-        UUID requestId = requestGuis.remove(player.getUniqueId());
-        player.closeInventory();
-        if (requestId == null) return;
-        if (requestManager.getRequest(requestId).isEmpty()) {
-            messages.send(player, "request-expired");
-            return;
-        }
-        if (slot == ACCEPT_SLOT) {
-            acceptRequest(player);
-        } else {
-            denyRequest(player);
-        }
-    }
-
     public void onInventoryClose(Player player) {
         kitSelectionTargets.remove(player.getUniqueId());
         kitSelectionKits.remove(player.getUniqueId());
-        requestGuis.remove(player.getUniqueId());
     }
 
     public void cleanup(Player player) {
@@ -174,8 +144,18 @@ public final class DuelGuiManager {
         DuelRequest request = requestManager.addRequest(player.getUniqueId(), target.getUniqueId(), kit);
         messages.send(player, "request-sent", Map.of("target", target.getName()));
         messages.send(target, "request-received", Map.of("challenger", player.getName(), "kit", kit.getDisplayName()));
-        openRequestGui(request);
+        sendRequestButtons(target);
         return true;
+    }
+
+    private void sendRequestButtons(Player target) {
+        Component accept = Component.text("[✔ ACCETTA]", NamedTextColor.GREEN, TextDecoration.BOLD)
+                .clickEvent(ClickEvent.runCommand("/duel accept"))
+                .hoverEvent(HoverEvent.showText(Component.text("Clicca per accettare la sfida", NamedTextColor.GREEN)));
+        Component deny = Component.text("[✖ RIFIUTA]", NamedTextColor.RED, TextDecoration.BOLD)
+                .clickEvent(ClickEvent.runCommand("/duel deny"))
+                .hoverEvent(HoverEvent.showText(Component.text("Clicca per rifiutare la sfida", NamedTextColor.RED)));
+        target.sendMessage(Component.text("    ", NamedTextColor.GRAY).append(accept).append(Component.text("    ")).append(deny));
     }
 
     public void acceptRequest(Player player) {
@@ -221,16 +201,5 @@ public final class DuelGuiManager {
         messages.send(player, "request-denied",
                 Map.of("challenger", challenger != null ? challenger.getName() : request.challenger().toString()));
         requestManager.removeRequest(request.id());
-    }
-
-    private ItemStack buildItem(Material material, String name, String lore) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(List.of(lore));
-            item.setItemMeta(meta);
-        }
-        return item;
     }
 }

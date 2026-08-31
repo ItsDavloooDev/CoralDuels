@@ -32,12 +32,17 @@ public final class RewardManager {
     private void loadRewards() {
         rewards.clear();
         ConfigurationSection section = config.getRewards().getConfigurationSection("rewards");
-        if (section != null) {
-            for (String key : section.getKeys(false)) {
-                if (!key.equals("enabled")) {
-                    List<?> list = section.getList(key);
-                    if (list != null) {
-                        rewards.put(key, parseRewards(list));
+        if (section == null) return;
+        for (String key : section.getKeys(false)) {
+            if (key.equals("enabled")) continue;
+            Object value = section.get(key);
+            if (value instanceof List<?> list) {
+                rewards.put(key, parseRewards(list));
+            } else if (value instanceof ConfigurationSection subsection) {
+                for (String subKey : subsection.getKeys(false)) {
+                    List<?> subList = subsection.getList(subKey);
+                    if (subList != null) {
+                        rewards.put(key + "." + subKey, parseRewards(subList));
                     }
                 }
             }
@@ -50,11 +55,16 @@ public final class RewardManager {
                 .filter(o -> o instanceof Map)
                 .map(o -> (Map<String, Object>) o)
                 .map(map -> {
-                    RewardType type = RewardType.valueOf(((String) map.getOrDefault("type", "COMMAND")).toUpperCase());
+                    RewardType type;
+                    try {
+                        type = RewardType.valueOf(String.valueOf(map.getOrDefault("type", "COMMAND")).toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        type = RewardType.COMMAND;
+                    }
                     int weight = ((Number) map.getOrDefault("weight", 100)).intValue();
-                    String value = (String) map.getOrDefault("value", "");
-                    String message = (String) map.getOrDefault("message", "");
-                    boolean silent = (Boolean) map.getOrDefault("silent", false);
+                    String value = String.valueOf(map.getOrDefault("value", ""));
+                    String message = String.valueOf(map.getOrDefault("message", ""));
+                    boolean silent = map.getOrDefault("silent", false) instanceof Boolean b && b;
                     return new Reward(type, weight, value, message, silent);
                 })
                 .toList();
@@ -65,6 +75,7 @@ public final class RewardManager {
         if (categoryRewards == null || categoryRewards.isEmpty()) return;
 
         int totalWeight = categoryRewards.stream().mapToInt(Reward::weight).sum();
+        if (totalWeight <= 0) return;
         int roll = random.nextInt(totalWeight);
         int current = 0;
 

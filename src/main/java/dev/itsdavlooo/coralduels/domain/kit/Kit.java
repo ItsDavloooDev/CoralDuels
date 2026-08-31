@@ -134,11 +134,16 @@ public final class Kit {
         String chestplate = section.getString("chestplate", "AIR");
         String leggings = section.getString("leggings", "AIR");
         String boots = section.getString("boots", "AIR");
-        armor[3] = new ItemStack(Material.getMaterial(helmet));
-        armor[2] = new ItemStack(Material.getMaterial(chestplate));
-        armor[1] = new ItemStack(Material.getMaterial(leggings));
-        armor[0] = new ItemStack(Material.getMaterial(boots));
+        armor[3] = new ItemStack(materialOrAir(helmet));
+        armor[2] = new ItemStack(materialOrAir(chestplate));
+        armor[1] = new ItemStack(materialOrAir(leggings));
+        armor[0] = new ItemStack(materialOrAir(boots));
         return armor;
+    }
+
+    private static Material materialOrAir(String name) {
+        Material material = Material.getMaterial(name);
+        return material != null ? material : Material.AIR;
     }
 
     private static List<KitEffect> parseEffects(List<?> list) {
@@ -170,7 +175,7 @@ public final class Kit {
 
     public void giveItems(org.bukkit.entity.Player player) {
         player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
+        player.getInventory().setArmorContents(new ItemStack[4]);
 
         for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
             player.getInventory().setItem(entry.getKey(), entry.getValue().clone());
