@@ -49,13 +49,17 @@ public final class DuelManager {
 
     private void startCleanupTask() {
         cleanupTask = Bukkit.getScheduler().runTaskTimer(CoralDuelsPlugin.getInstance(), () -> {
-            long now = System.currentTimeMillis();
             requestManager.getPendingRequests().forEach(request -> {
                 if (request.isExpired(requestTimeoutSeconds)) {
                     expireRequest(request.id());
                 }
             });
-        }, 20L, 1200L);
+        }, 20L, 20L);
+    }
+
+    public void restartCleanupTask() {
+        stopCleanupTask();
+        startCleanupTask();
     }
 
     public void stopCleanupTask() {
@@ -249,7 +253,10 @@ public final class DuelManager {
         requestManager.getRequest(requestId).ifPresent(request -> {
             Player challenger = Bukkit.getPlayer(request.challenger());
             Player target = Bukkit.getPlayer(request.target());
-            if (challenger != null) messages.send(challenger, "target-denied", Map.of("target", target != null ? target.getName() : "Unknown"));
+            if (challenger != null) {
+                messages.send(challenger, "request-expired-challenger",
+                        Map.of("target", target != null ? target.getName() : "Unknown"));
+            }
             if (target != null) messages.send(target, "request-expired");
             requestManager.removeRequest(requestId);
         });

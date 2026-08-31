@@ -82,8 +82,7 @@ public final class AdminCommand implements CommandExecutor {
             rewardManager.reload();
             duelManager.getRequestManager().clear();
             duelManager.getSessionManager().clear();
-            duelManager.stopCleanupTask();
-            duelManager.getSessionManager().clear();
+            duelManager.restartCleanupTask();
             messages.send(player, "reloaded");
         } else {
             String target = args[1].toLowerCase();
