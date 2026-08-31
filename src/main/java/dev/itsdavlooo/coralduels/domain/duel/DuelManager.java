@@ -214,7 +214,10 @@ public final class DuelManager {
                 if (winnerPlayer != null) {
                     messages.send(winnerPlayer, "duel-end-win", Map.of("opponent", loserPlayer != null ? loserPlayer.getName() : "Unknown"));
                     rewardManager.giveRewards(winnerPlayer, session.kit().getName());
-                    statisticManager.recordMatchResult(winner, loser, session.kit().getName(), challengerDamage, targetDamage);
+                    boolean challengerWon = winner.equals(session.challenger().getUuid());
+                    int winnerDamage = challengerWon ? challengerDamage : targetDamage;
+                    int loserDamage = challengerWon ? targetDamage : challengerDamage;
+                    statisticManager.recordMatchResult(winner, loser, session.kit().getName(), winnerDamage, loserDamage);
                 }
                 if (loserPlayer != null) {
                     messages.send(loserPlayer, "duel-end-lose", Map.of("opponent", winnerPlayer != null ? winnerPlayer.getName() : "Unknown"));

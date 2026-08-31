@@ -41,7 +41,7 @@ public final class Kit {
         String displayName = section.getString("display-name", name);
         String permission = section.getString("permission", "coralduels.kit.select." + name);
         ItemStack icon = parseItemStack(section.getConfigurationSection("icon"));
-        Map<Integer, ItemStack> items = parseItems(section.getConfigurationSection("items"));
+        Map<Integer, ItemStack> items = parseItems(section, "items");
         ItemStack[] armor = parseArmor(section.getConfigurationSection("armor"));
         List<KitEffect> effects = parseEffects(section.getList("effects"));
         int cooldown = section.getInt("cooldown", 0);
@@ -73,32 +73,58 @@ public final class Kit {
         return item;
     }
 
-    private static Map<Integer, ItemStack> parseItems(ConfigurationSection section) {
-        if (section == null) return Map.of();
+    private static Map<Integer, ItemStack> parseItems(ConfigurationSection section, String path) {
         Map<Integer, ItemStack> items = new HashMap<>();
-        for (String key : section.getKeys(false)) {
-            ConfigurationSection itemSection = section.getConfigurationSection(key);
-            if (itemSection != null) {
-                int slot = itemSection.getInt("slot", 0);
-                Material material = Material.getMaterial(itemSection.getString("material", "AIR"));
-                int amount = itemSection.getInt("amount", 1);
-                ItemStack item = new ItemStack(material, amount);
-                ItemMeta meta = item.getItemMeta();
-                if (meta != null) {
-                    ConfigurationSection enchants = itemSection.getConfigurationSection("enchantments");
-                    if (enchants != null) {
-                        for (String enchantKey : enchants.getKeys(false)) {
-                            Enchantment enchant = Enchantment.getByName(enchantKey);
-                            if (enchant != null) meta.addEnchant(enchant, enchants.getInt(enchantKey), true);
-                        }
-                    }
-                    meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
-                    item.setItemMeta(meta);
-                }
-                items.put(slot, item);
+        if (section == null) return items;
+
+        List<?> list = section.getList(path);
+        if (list != null) {
+            for (Object obj : list) {
+                if (!(obj instanceof Map<?, ?> raw)) continue;
+                Map<String, Object> map = new HashMap<>();
+                raw.forEach((k, v) -> map.put(String.valueOf(k), v));
+                int slot = ((Number) map.getOrDefault("slot", 0)).intValue();
+                ItemStack item = parseItemFromMap(map);
+                if (item != null) items.put(slot, item);
             }
+            return items;
+        }
+
+        ConfigurationSection itemSection = section.getConfigurationSection(path);
+        if (itemSection == null) return items;
+        for (String key : itemSection.getKeys(false)) {
+            ConfigurationSection entry = itemSection.getConfigurationSection(key);
+            if (entry == null) continue;
+            Map<String, Object> map = new HashMap<>();
+            for (String entryKey : entry.getKeys(false)) {
+                map.put(entryKey, entry.get(entryKey));
+            }
+            int slot = entry.getInt("slot", 0);
+            ItemStack item = parseItemFromMap(map);
+            if (item != null) items.put(slot, item);
         }
         return items;
+    }
+
+    private static ItemStack parseItemFromMap(Map<String, Object> map) {
+        String materialName = String.valueOf(map.getOrDefault("material", "AIR"));
+        Material material = Material.getMaterial(materialName);
+        if (material == null) return null;
+        int amount = ((Number) map.getOrDefault("amount", 1)).intValue();
+        ItemStack item = new ItemStack(material, Math.max(1, amount));
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            Object enchants = map.get("enchantments");
+            if (enchants instanceof Map<?, ?> enchMap) {
+                for (Map.Entry<?, ?> entry : enchMap.entrySet()) {
+                    Enchantment enchant = Enchantment.getByName(String.valueOf(entry.getKey()));
+                    if (enchant != null) meta.addEnchant(enchant, ((Number) entry.getValue()).intValue(), true);
+                }
+            }
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     private static ItemStack[] parseArmor(ConfigurationSection section) {

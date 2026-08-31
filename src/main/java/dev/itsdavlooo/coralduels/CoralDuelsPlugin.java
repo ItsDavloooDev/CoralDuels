@@ -55,6 +55,7 @@ public final class CoralDuelsPlugin extends JavaPlugin {
         messageService = new MessageService(configService);
         databaseService = new DatabaseService(this, configService);
         worldManager = new DuelWorldManager(this, configService);
+        worldManager.initialize();
         kitManager = new KitManager(configService);
         playerStateManager = new PlayerStateManager(this);
         arenaManager = new ArenaManager(configService, this);
@@ -69,8 +70,6 @@ public final class CoralDuelsPlugin extends JavaPlugin {
         ModuleRegistry.register(configService, messageService, databaseService,
                 worldManager, kitManager, playerStateManager,
                 arenaManager, rewardManager, null);
-
-        worldManager.initialize();
 
         registerCommands();
         registerListeners();

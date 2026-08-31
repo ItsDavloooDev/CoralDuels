@@ -131,6 +131,9 @@ public final class MySQLStatisticRepository implements StatisticRepository {
             case "wins" -> "duels_won";
             case "played" -> "duels_played";
             case "losses" -> "duels_lost";
+            case "streak" -> "current_streak";
+            case "kills" -> "kills";
+            case "deaths" -> "deaths";
             default -> "elo_rating";
         };
         return databaseService.queryAsync(conn -> {
@@ -245,6 +248,8 @@ public final class MySQLStatisticRepository implements StatisticRepository {
         return databaseService.executeAsync(conn -> {
             try {
                 conn.setAutoCommit(false);
+                ensurePlayerRow(conn, winner);
+                ensurePlayerRow(conn, loser);
                 try (PreparedStatement stmt = conn.prepareStatement(
                         "UPDATE coralduels_stats SET " +
                                 "duels_played = duels_played + 1, " +
@@ -306,6 +311,8 @@ public final class MySQLStatisticRepository implements StatisticRepository {
         return databaseService.executeAsync(conn -> {
             try {
                 conn.setAutoCommit(false);
+                ensurePlayerRow(conn, player1);
+                ensurePlayerRow(conn, player2);
                 try (PreparedStatement stmt = conn.prepareStatement(
                         "UPDATE coralduels_stats SET " +
                                 "duels_played = duels_played + 1, " +
@@ -355,6 +362,19 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                 }
             }
         });
+    }
+
+    private void ensurePlayerRow(Connection conn, UUID uuid) throws SQLException {
+        String username = org.bukkit.Bukkit.getOfflinePlayer(uuid).getName();
+        if (username == null || username.isEmpty()) {
+            username = uuid.toString().substring(0, 16);
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "INSERT IGNORE INTO coralduels_stats (uuid, username) VALUES (?, ?)")) {
+            stmt.setString(1, uuid.toString());
+            stmt.setString(2, username);
+            stmt.executeUpdate();
+        }
     }
 
     private PlayerStatistic mapResultSet(ResultSet rs) throws SQLException {

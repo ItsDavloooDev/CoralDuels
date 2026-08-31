@@ -42,7 +42,7 @@ public final class DuelCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            messages.send(player, "self-challenge");
+            messages.send(player, "duel-usage");
             return true;
         }
 
@@ -54,22 +54,19 @@ public final class DuelCommand implements CommandExecutor {
             case "leave" -> handleLeave(player);
             case "stats" -> handleStats(player, args);
             case "top", "leaderboard" -> handleLeaderboard(player, args);
-            default -> {
-                messages.send(player, "self-challenge");
-                yield true;
-            }
+            default -> challengePlayer(player, args[0], args.length >= 2 ? args[1] : "classic");
         };
     }
 
     private boolean handleChallenge(Player player, String[] args) {
         if (args.length < 2) {
-            messages.send(player, "self-challenge");
+            messages.send(player, "duel-usage");
             return true;
         }
+        return challengePlayer(player, args[1], args.length >= 3 ? args[2] : "classic");
+    }
 
-        String targetName = args[1];
-        String kitName = args.length >= 3 ? args[2] : "classic";
-
+    private boolean challengePlayer(Player player, String targetName, String kitName) {
         Player target = Bukkit.getPlayerExact(targetName);
         if (target == null) {
             messages.send(player, "player-not-found", Map.of("player", targetName));

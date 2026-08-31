@@ -7,7 +7,7 @@ description: Sistema professionale di duelli realistici per server Paper
 commands:
   duel:
     description: Comando principale per i duelli
-    usage: /duel <send|accept|deny|leave|stats|leaderboard>
+    usage: /duel <giocatore> [kit] | send <giocatore> [kit] | accept | deny | leave | stats | top [categoria]
     aliases: [duels]
   dueladmin:
     description: Comandi amministrativi per i duelli
