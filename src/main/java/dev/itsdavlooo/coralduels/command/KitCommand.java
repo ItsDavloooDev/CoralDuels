@@ -5,6 +5,7 @@ import dev.itsdavlooo.coralduels.domain.kit.Kit;
 import dev.itsdavlooo.coralduels.domain.kit.KitManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -42,10 +43,7 @@ public final class KitCommand implements CommandExecutor {
             case "list" -> handleList(player);
             case "select" -> handleSelect(player, args);
             case "preview" -> handlePreview(player, args);
-            default -> {
-                messages.send(player, "kit-not-found", Map.of("kit", args[0]));
-                yield true;
-            }
+            default -> selectKit(player, args[0]);
         };
     }
 
@@ -54,7 +52,7 @@ public final class KitCommand implements CommandExecutor {
         kitManager.getAllKits().forEach((name, kit) -> {
             boolean canUse = kitManager.canUse(player, kit);
             String status = canUse ? "§a[Disponibile]" : "§c[Bloccato]";
-            player.sendMessage(" §e" + name + " §7- §f" + kit.getDisplayName() + " " + status);
+            player.sendMessage(" §e" + name + " §7- §f" + ChatColor.translateAlternateColorCodes('&', kit.getDisplayName()) + " " + status);
         });
         return true;
     }
@@ -64,7 +62,10 @@ public final class KitCommand implements CommandExecutor {
             messages.send(player, "kit-select-usage");
             return true;
         }
-        String kitName = args[1].toLowerCase();
+        return selectKit(player, args[1]);
+    }
+
+    private boolean selectKit(Player player, String kitName) {
         Optional<Kit> kitOpt = kitManager.getKit(kitName);
         if (kitOpt.isEmpty()) {
             messages.send(player, "kit-not-found", Map.of("kit", kitName));

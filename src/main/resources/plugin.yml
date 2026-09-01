@@ -17,6 +17,10 @@ commands:
     description: Gestione kit
     usage: /kit <list|select|preview>
     aliases: [kits]
+  leaderboards:
+    description: Apri la GUI delle classifiche
+    usage: /leaderboards
+    aliases: [lb, leaderboard]
 permissions:
   coralduels.admin:
     description: Accesso a tutti i comandi amministrativi

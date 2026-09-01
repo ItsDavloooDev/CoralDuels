@@ -10,6 +10,10 @@ import dev.itsdavlooo.coralduels.domain.reward.RewardManager;
 import dev.itsdavlooo.coralduels.domain.statistic.StatisticManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -99,6 +103,8 @@ public final class DuelManager {
 
         playerStateManager.saveState(challengerPlayer.getUniqueId(), challenger);
         playerStateManager.saveState(targetPlayer.getUniqueId(), targetDuel);
+        playerStateManager.createSnapshot(challengerPlayer);
+        playerStateManager.createSnapshot(targetPlayer);
 
         DuelSession session = new DuelSession(
                 UUID.randomUUID(),
@@ -123,6 +129,9 @@ public final class DuelManager {
             playerStateManager.setDuelTeleporting(challengerPlayer.getUniqueId(), false);
             playerStateManager.setDuelTeleporting(targetPlayer.getUniqueId(), false);
         }
+
+        challengerPlayer.setFallDistance(0);
+        targetPlayer.setFallDistance(0);
 
         request.kit().giveItems(challengerPlayer);
         request.kit().giveItems(targetPlayer);
@@ -161,6 +170,9 @@ public final class DuelManager {
             Player target = Bukkit.getPlayer(session.target().getUuid());
             if (challenger != null) messages.send(challenger, "duel-start");
             if (target != null) messages.send(target, "duel-start");
+
+            if (challenger != null) challenger.setFallDistance(0);
+            if (target != null) target.setFallDistance(0);
 
             int maxDuration = CoralDuelsPlugin.getInstance().getConfigService().getConfig().getInt("timers.max-duel-duration", 300);
             int timeoutTaskId = Bukkit.getScheduler().runTaskLater(CoralDuelsPlugin.getInstance(), () -> {
@@ -205,6 +217,7 @@ public final class DuelManager {
 
             sessionManager.removeSession(session.id());
             playerStateManager.unregisterDuel(new Duel(session));
+            cleanupArena(session.arena());
         });
     }
 
@@ -216,6 +229,9 @@ public final class DuelManager {
 
             Player challenger = Bukkit.getPlayer(session.challenger().getUuid());
             Player target = Bukkit.getPlayer(session.target().getUuid());
+
+            if (challenger != null) restoreWithTeleportPermission(session.challenger().getUuid(), challenger);
+            if (target != null) restoreWithTeleportPermission(session.target().getUuid(), target);
 
             if (winner != null) {
                 UUID loser = winner.equals(session.challenger().getUuid()) ? session.target().getUuid() : session.challenger().getUuid();
@@ -239,11 +255,9 @@ public final class DuelManager {
                 statisticManager.recordDrawResult(session.challenger().getUuid(), session.target().getUuid(), session.kit().getName(), challengerDamage, targetDamage);
             }
 
-            if (challenger != null) restoreWithTeleportPermission(session.challenger().getUuid(), challenger);
-            if (target != null) restoreWithTeleportPermission(session.target().getUuid(), target);
-
             sessionManager.removeSession(sessionId);
             playerStateManager.unregisterDuel(new Duel(session));
+            cleanupArena(session.arena());
         });
     }
 
@@ -269,7 +283,25 @@ public final class DuelManager {
         });
     }
 
+    private void cleanupArena(Arena arena) {
+        World world = arena.getWorld();
+        if (world == null) {
+            return;
+        }
+        for (Entity entity : world.getEntities()) {
+            if (!arena.contains(entity.getLocation())) {
+                continue;
+            }
+            if (entity.getType() == EntityType.ITEM || entity instanceof AbstractArrow) {
+                entity.remove();
+            }
+        }
+    }
+
     private void restoreWithTeleportPermission(UUID uuid, Player player) {
+        if (player.isDead()) {
+            return;
+        }
         playerStateManager.setDuelTeleporting(uuid, true);
         try {
             playerStateManager.restoreSnapshot(uuid, player);

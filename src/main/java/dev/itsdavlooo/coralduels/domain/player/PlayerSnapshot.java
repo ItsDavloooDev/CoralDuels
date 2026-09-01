@@ -50,6 +50,7 @@ public record PlayerSnapshot(
         player.getInventory().setArmorContents(armor);
         player.getEnderChest().setContents(enderChest);
         player.teleport(location);
+        player.setFallDistance(0);
         player.setHealth(health);
         player.setFoodLevel(foodLevel);
         player.setSaturation(saturation);

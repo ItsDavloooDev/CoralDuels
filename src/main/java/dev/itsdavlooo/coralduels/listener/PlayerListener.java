@@ -6,6 +6,7 @@ import dev.itsdavlooo.coralduels.domain.duel.RequestManager;
 import dev.itsdavlooo.coralduels.domain.player.PlayerSnapshot;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -51,14 +52,16 @@ public final class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        if (playerStateManager.isInDuel(player.getUniqueId())) {
+        if (playerStateManager.getSnapshot(player.getUniqueId()).isPresent()) {
             event.setDeathMessage(null);
             event.setKeepInventory(true);
             event.setKeepLevel(true);
             playerStateManager.getSnapshot(player.getUniqueId())
                     .map(PlayerSnapshot::location)
                     .ifPresent(location -> pendingRespawns.put(player.getUniqueId(), location));
-            duelManager.handleDuelDeath(player);
+            if (playerStateManager.isInDuel(player.getUniqueId())) {
+                duelManager.handleDuelDeath(player);
+            }
         }
     }
 
@@ -68,6 +71,14 @@ public final class PlayerListener implements Listener {
         Location respawnLocation = pendingRespawns.remove(player.getUniqueId());
         if (respawnLocation != null) {
             event.setRespawnLocation(respawnLocation);
+            UUID uuid = player.getUniqueId();
+            CoralDuelsPlugin plugin = CoralDuelsPlugin.getInstance();
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                Player online = Bukkit.getPlayer(uuid);
+                if (online != null) {
+                    playerStateManager.restoreSnapshot(uuid, online);
+                }
+            });
         }
     }
 

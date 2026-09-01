@@ -1,7 +1,9 @@
 package dev.itsdavlooo.coralduels.listener;
 
 import dev.itsdavlooo.coralduels.CoralDuelsPlugin;
+import dev.itsdavlooo.coralduels.domain.duel.Duel;
 import dev.itsdavlooo.coralduels.domain.duel.DuelManager;
+import dev.itsdavlooo.coralduels.domain.duel.DuelState;
 import dev.itsdavlooo.coralduels.domain.player.PlayerStateManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -43,6 +45,15 @@ public final class DuelListener implements Listener {
     public void onDamageReceive(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         if (!playerStateManager.isInDuel(player.getUniqueId())) return;
+
+        if (event.getCause() == EntityDamageEvent.DamageCause.FALL
+                || event.getCause() == EntityDamageEvent.DamageCause.VOID) {
+            Duel duel = playerStateManager.getActiveDuel(player.getUniqueId());
+            if (duel != null && duel.getState() == DuelState.COUNTDOWN) {
+                event.setCancelled(true);
+                return;
+            }
+        }
 
         if (event.getCause() == EntityDamageEvent.DamageCause.VOID) {
             duelManager.handleDuelDeath(player);

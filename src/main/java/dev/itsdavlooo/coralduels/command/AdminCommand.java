@@ -8,6 +8,7 @@ import dev.itsdavlooo.coralduels.domain.reward.RewardManager;
 import dev.itsdavlooo.coralduels.service.config.ConfigService;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -124,7 +125,7 @@ public final class AdminCommand implements CommandExecutor {
         String action = args[1].toLowerCase();
         if (action.equals("list")) {
             arenaManager.getAllArenas().forEach((name, arena) -> 
-                player.sendMessage("§e" + name + " §7- §f" + arena.getName() + " §7(" + (arena.isEnabled() ? "§aabilitata" : "§cdisabilitata") + "§7)"));
+                player.sendMessage("§e" + name + " §7- §f" + ChatColor.translateAlternateColorCodes('&', arena.getName()) + " §7(" + (arena.isEnabled() ? "§aabilitata" : "§cdisabilitata") + "§7)"));
         }
         return true;
     }
@@ -137,7 +138,7 @@ public final class AdminCommand implements CommandExecutor {
         String action = args[1].toLowerCase();
         if (action.equals("list")) {
             kitManager.getAllKits().forEach((name, kit) -> 
-                player.sendMessage("§e" + name + " §7- §f" + kit.getDisplayName() + " §7(" + kit.getPermission() + ")"));
+                player.sendMessage("§e" + name + " §7- §f" + ChatColor.translateAlternateColorCodes('&', kit.getDisplayName()) + " §7(" + kit.getPermission() + ")"));
         }
         return true;
     }

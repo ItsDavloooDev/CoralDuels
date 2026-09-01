@@ -30,7 +30,7 @@ public final class MessageService {
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             msg = msg.replace("%" + entry.getKey() + "%", entry.getValue());
         }
-        return msg;
+        return colorize(msg);
     }
 
     public void send(CommandSender sender, String key) {

@@ -138,7 +138,8 @@ public final class MySQLStatisticRepository implements StatisticRepository {
         };
         return databaseService.queryAsync(conn -> {
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "SELECT uuid, username, duels_played, duels_won, duels_lost, duels_draw, kills, deaths, elo_rating " +
+                    "SELECT uuid, username, duels_played, duels_won, duels_lost, duels_draw, kills, deaths, " +
+                            "current_streak, elo_rating " +
                             "FROM coralduels_stats ORDER BY " + column + " DESC, username ASC LIMIT ?")) {
                 stmt.setInt(1, limit);
                 List<LeaderboardEntry> entries = new ArrayList<>();
@@ -152,6 +153,10 @@ public final class MySQLStatisticRepository implements StatisticRepository {
                                 rs.getInt("duels_won"),
                                 rs.getInt("duels_lost"),
                                 rs.getInt("elo_rating"),
+                                rs.getInt("duels_played"),
+                                rs.getInt("current_streak"),
+                                rs.getInt("kills"),
+                                rs.getInt("deaths"),
                                 ""
                         ));
                     }

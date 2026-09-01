@@ -4,8 +4,10 @@ import dev.itsdavlooo.coralduels.bootstrap.ModuleRegistry;
 import dev.itsdavlooo.coralduels.command.AdminCommand;
 import dev.itsdavlooo.coralduels.command.DuelCommand;
 import dev.itsdavlooo.coralduels.command.KitCommand;
+import dev.itsdavlooo.coralduels.command.LeaderboardCommand;
 import dev.itsdavlooo.coralduels.listener.DuelGuiListener;
 import dev.itsdavlooo.coralduels.listener.DuelListener;
+import dev.itsdavlooo.coralduels.listener.LeaderboardGuiListener;
 import dev.itsdavlooo.coralduels.listener.PlayerListener;
 import dev.itsdavlooo.coralduels.listener.WorldListener;
 import dev.itsdavlooo.coralduels.service.config.ConfigService;
@@ -13,6 +15,7 @@ import dev.itsdavlooo.coralduels.service.database.DatabaseService;
 import dev.itsdavlooo.coralduels.service.database.repository.MySQLStatisticRepository;
 import dev.itsdavlooo.coralduels.service.database.repository.StatisticRepository;
 import dev.itsdavlooo.coralduels.service.gui.DuelGuiManager;
+import dev.itsdavlooo.coralduels.service.gui.LeaderboardGuiManager;
 import dev.itsdavlooo.coralduels.service.message.MessageService;
 import dev.itsdavlooo.coralduels.service.world.DuelWorldManager;
 import dev.itsdavlooo.coralduels.domain.duel.DuelManager;
@@ -42,6 +45,7 @@ public final class CoralDuelsPlugin extends JavaPlugin {
     private SessionManager sessionManager;
     private DuelManager duelManager;
     private DuelGuiManager guiManager;
+    private LeaderboardGuiManager leaderboardGuiManager;
 
     @Override
     public void onEnable() {
@@ -71,6 +75,7 @@ public final class CoralDuelsPlugin extends JavaPlugin {
                 playerStateManager, rewardManager, statisticManager, arenaManager);
         guiManager = new DuelGuiManager(messageService, duelManager, requestManager,
                 kitManager, playerStateManager);
+        leaderboardGuiManager = new LeaderboardGuiManager(statisticManager);
 
         ModuleRegistry.register(configService, messageService, databaseService,
                 worldManager, kitManager, playerStateManager,
@@ -102,6 +107,7 @@ public final class CoralDuelsPlugin extends JavaPlugin {
                 playerStateManager, guiManager));
         getCommand("dueladmin").setExecutor(new AdminCommand(messageService));
         getCommand("kit").setExecutor(new KitCommand(messageService));
+        getCommand("leaderboards").setExecutor(new LeaderboardCommand(leaderboardGuiManager));
     }
 
     private void registerListeners() {
@@ -109,6 +115,7 @@ public final class CoralDuelsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new DuelListener(), this);
         getServer().getPluginManager().registerEvents(new WorldListener(), this);
         getServer().getPluginManager().registerEvents(new DuelGuiListener(), this);
+        getServer().getPluginManager().registerEvents(new LeaderboardGuiListener(leaderboardGuiManager), this);
     }
 
     public static CoralDuelsPlugin getInstance() {
@@ -126,6 +133,7 @@ public final class CoralDuelsPlugin extends JavaPlugin {
     public StatisticManager getStatisticManager() { return statisticManager; }
     public DuelManager getDuelManager() { return duelManager; }
     public DuelGuiManager getDuelGuiManager() { return guiManager; }
+    public LeaderboardGuiManager getLeaderboardGuiManager() { return leaderboardGuiManager; }
     public RequestManager getRequestManager() { return requestManager; }
     public SessionManager getSessionManager() { return sessionManager; }
 }
